@@ -190,7 +190,9 @@ class _SignUpStudent1State extends State<SignUpStudent1> {
                     Text("By signing up, you agree to our",
                         style: TextStyle(fontSize: 15)),
                     InkWell(
-                      onTap: () {},
+                      onTap: () {
+
+                      },
                       child: Text(
                         " Terms and Conditions",
                         style: mTextStyle14(

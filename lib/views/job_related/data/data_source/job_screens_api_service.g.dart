@@ -66,6 +66,7 @@ class _JobScreensApiService implements JobScreensApiService {
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
     final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    developer.log('result: ${_result}');
     late JobDetailsResponseModel _value;
     try {
       _value = JobDetailsResponseModel.fromJson(_result.data!);

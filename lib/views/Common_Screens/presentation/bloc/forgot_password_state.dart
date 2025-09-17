@@ -50,3 +50,23 @@ class ResetPasswordFailed extends ForgotPasswordState {
   @override
   List<Object?> get props => [error];
 }
+
+class ResetPasswordWithOTPLoading extends ForgotPasswordState {}
+
+class ResetPasswordWithOTPSuccess extends ForgotPasswordState {
+  final String message;
+
+  const ResetPasswordWithOTPSuccess(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}
+
+class ResetPasswordWithOTPFailed extends ForgotPasswordState {
+  final String error;
+
+  const ResetPasswordWithOTPFailed(this.error);
+
+  @override
+  List<Object?> get props => [error];
+}

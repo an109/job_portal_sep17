@@ -18,6 +18,8 @@ import '../../../../utils/constants/urls.dart';
 import '../../../../widgets/widgets.dart';
 import '../../../user_profile/presentation/views/User_messages_screen.dart';
 import '../../../job_related/presentation/views/job_details_view.dart';
+import 'package:job_portal/utils/storage/shared_preference.dart';
+import 'package:share_plus/share_plus.dart';
 
 class FeedScreen extends StatefulWidget {
   final bool showFeed2;
@@ -39,6 +41,9 @@ class _FeedScreenState extends State<FeedScreen> {
   final FocusNode _commentFocusNode = FocusNode();
   int page = 1;
   int limit = 5;
+  // FeedEntity? feedPostsData;
+  List<PostEntity>? postList;
+  List<PostEntity>? filteredPostList;
 
   List<Map<String, dynamic>> uList = [
     {
@@ -71,8 +76,7 @@ class _FeedScreenState extends State<FeedScreen> {
     }
   }
 
-  // FeedEntity? feedPostsData;
-  List<PostEntity>? postList;
+
 
   @override
   void didChangeDependencies() {
@@ -82,7 +86,7 @@ class _FeedScreenState extends State<FeedScreen> {
     final bloc = context.read<FeedBloc>();
     bloc.add(const LoadFeedPosts('1', '10'));
   }
-
+  final token = PreferencesManager.instance.getToken();
   @override
   void initState() {
     // TODO: implement initState
@@ -273,246 +277,268 @@ class _FeedScreenState extends State<FeedScreen> {
       return FeedScreen2(onBack: widget.onCallBackFromFeed2);
     }
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
+    return RefreshIndicator(
+      onRefresh: () async {
+        page = 1;
+        context.read<FeedBloc>().add(LoadFeedPosts('1', limit.toString()));
+
+        await Future.delayed(const Duration(milliseconds: 500));
+      },
+      child: Scaffold(
         backgroundColor: Colors.white,
-        title: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 0.0),
-          child: SvgPicture.asset(
-            ImageString.jobPortalLogo,
-            height: 30,
-            // width: 40,
-            fit: BoxFit.contain,
-            allowDrawingOutsideViewBox: true, // optional
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          title: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 0.0),
+            child: SvgPicture.asset(
+              ImageString.jobPortalLogo,
+              height: 30,
+              // width: 40,
+              fit: BoxFit.contain,
+              allowDrawingOutsideViewBox: true, // optional
+            ),
+            // child: Image.asset(ImageString.pngLogo),
           ),
-          // child: Image.asset(ImageString.pngLogo),
+          actions: [
+            InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const MessagesScreen(),
+                  ),
+                );
+              },
+              child: Padding(
+                padding: const EdgeInsets.only(right: 20.0),
+                child: SvgPicture.asset("assets/Icons/message_icon.svg"),
+              ),
+            ),
+            InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const NotificationsScreen(),
+                  ),
+                );
+              },
+              child: Padding(
+                padding: const EdgeInsets.only(right: 20.0),
+                child: SvgPicture.asset("assets/Icons/notifications_icon.svg"),
+              ),
+            ),
+          ],
         ),
-        actions: [
-          InkWell(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const MessagesScreen(),
-                ),
-              );
-            },
-            child: Padding(
-              padding: const EdgeInsets.only(right: 20.0),
-              child: SvgPicture.asset("assets/Icons/message_icon.svg"),
-            ),
-          ),
-          InkWell(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const NotificationsScreen(),
-                ),
-              );
-            },
-            child: Padding(
-              padding: const EdgeInsets.only(right: 20.0),
-              child: SvgPicture.asset("assets/Icons/notifications_icon.svg"),
-            ),
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        controller: _scrollController,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
-          child: Column(
-            children: [
-              BlocListener<FeedBloc, FeedState>(
-                listener: (context, state) {
-                  if (state is FeedPostsLoaded) {
-                    final data = state.postEntity;
-                    page += 1;
-                    setState(() {
-                      // feedPostsData = data;
-                      postList = data;
-                    });
-                    // developer.log('Feed posts data : ${data.posts.first.id}');
-                    developer.log('Feed posts data : ${data.first.id}');
-                  } else if (state is FeedPostCommentLoaded) {
-                    final data = state.feedPostCommentEntity;
-                    developer.log('Comment successfully posted.');
-                    showSnackbar(data.message, context);
-                    _commentController.clear();
-                    FocusScope.of(context).unfocus();
-                    setState(() => activePostId = null);
+        body: SingleChildScrollView(
+          controller: _scrollController,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Column(
+              children: [
+                BlocListener<FeedBloc, FeedState>(
+                  listener: (context, state) {
+                    if (state is FeedPostsLoaded) {
+                      final data = state.postEntity;
+                      page += 1;
+                      setState(() {
+                        // feedPostsData = data;
+                        postList = data;
+                        filteredPostList = data;
+                      });
+                      // developer.log('Feed posts data : ${data.posts.first.id}');
+                      developer.log('Feed posts data : ${data.first.id}');
+                    } else if (state is FeedPostCommentLoaded) {
+                      final data = state.feedPostCommentEntity;
+                      developer.log('Comment successfully posted.');
+                      showSnackbar(data.message, context);
+                      _commentController.clear();
+                      FocusScope.of(context).unfocus();
+                      setState(() => activePostId = null);
 
-                    // Reset page to 1 and reload
-                    page = 1;
-                    context
-                        .read<FeedBloc>()
-                        .add(LoadFeedPosts('1', limit.toString()));
-                  } else if (state is FeedPostCommentLoading) {
-                    developer.log('Commentting .');
-                  } else if (state is FeedPostCommentError) {
-                    developer.log('Comment posting error.');
-                  }
-                },
-                child: const SizedBox(),
-              ),
-              Row(
-                children: [
-                  Expanded(
-                    child: SearchTextField(
-                      onTextChanged: (value) {
-                        print("search text changed.");
-                      },
-                    ),
-                  ),
-                  const SizedBox(
-                    width: 40,
-                  ),
-                  SvgPicture.asset("assets/Icons/settings-sliders 1.svg")
-                ],
-              ),
-              const SizedBox(
-                height: 15,
-              ),
-              Row(
-                children: [
-                  // CircleAvatar(
-                  //   child: Image.asset(ImageString.placeHolderImage),
-                  // ),
-                  Container(
-                    // height: 88,
-                    // width: 64,
-                    child: SvgPicture.asset("assets/Icons/profile_icon.svg"),
-                  ),
-                  const SizedBox(
-                    width: 18,
-                  ),
-                  // Expanded(
-                  //   child: CustomTextField(
-                  //     controller: newPostController,
-                  //     hintText: 'Share something...',
-                  //   ),
-                  // )
-                  Expanded(
-                      child: TextField(
-                    readOnly: true,
-                    decoration: InputDecoration(
-                      hintText: 'Share something...',
-                      hintStyle:
-                          TextStyle(color: Color.fromRGBO(188, 193, 202, 1)),
-                      disabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(
-                          width: 1,
-                          color: Color.fromRGBO(237, 241, 243, 1),
-                        ),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(
-                          width: 1,
-                          color: Color.fromRGBO(237, 241, 243, 1),
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(
-                          width: 1,
-                          color: Color.fromRGBO(237, 241, 243, 1),
-                        ),
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(
-                          width: 1,
-                          color: Color.fromRGBO(237, 241, 243, 1),
-                        ),
+                      // Reset page to 1 and reload
+                      page = 1;
+                      context
+                          .read<FeedBloc>()
+                          .add(LoadFeedPosts('1', limit.toString()));
+                    } else if (state is FeedPostCommentLoading) {
+                      developer.log('Commentting .');
+                    } else if (state is FeedPostCommentError) {
+                      developer.log('Comment posting error.');
+                    }
+                  },
+                  child: const SizedBox(),
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: SearchTextField(
+                        onTextChanged: (value) {
+                          final query = value.toLowerCase();
+                          if (query.isEmpty) {
+                            setState(() {
+                              filteredPostList = postList;
+                            });
+                          } else {
+                            setState(() {
+                              filteredPostList = postList?.where((post) {
+                                final caption = post.caption.toLowerCase();
+                                final username = post.user.first_name.toLowerCase();
+                                return caption.contains(query) || username.contains(query);
+                              }).toList();
+                            });
+                          }
+                        },
                       ),
                     ),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const CreateFeedPostView(),
+                    const SizedBox(
+                      width: 40,
+                    ),
+                    SvgPicture.asset("assets/Icons/settings-sliders 1.svg")
+                  ],
+                ),
+                const SizedBox(
+                  height: 15,
+                ),
+                Row(
+                  children: [
+                    // CircleAvatar(
+                    //   child: Image.asset(ImageString.placeHolderImage),
+                    // ),
+                    Container(
+                      // height: 88,
+                      // width: 64,
+                      child: SvgPicture.asset("assets/Icons/profile_icon.svg"),
+                    ),
+                    const SizedBox(
+                      width: 18,
+                    ),
+                    // Expanded(
+                    //   child: CustomTextField(
+                    //     controller: newPostController,
+                    //     hintText: 'Share something...',
+                    //   ),
+                    // )
+                    Expanded(
+                        child: TextField(
+                      readOnly: true,
+                      decoration: InputDecoration(
+                        hintText: 'Share something...',
+                        hintStyle:
+                            TextStyle(color: Color.fromRGBO(188, 193, 202, 1)),
+                        disabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            width: 1,
+                            color: Color.fromRGBO(237, 241, 243, 1),
+                          ),
                         ),
-                      );
-                    },
-                  )),
-                ],
-              ),
-              const SizedBox(
-                height: 30,
-              ),
-              // feedPostsData != null
-              postList != null
-                  ? ListView.builder(
-                      physics: const NeverScrollableScrollPhysics(),
-                      shrinkWrap: true,
-                      itemCount: postList?.length,
-                      padding: const EdgeInsets.only(bottom: 16),
-                      itemBuilder: (context, index) {
-                        // final item = uList[index];
-                        // return Padding(
-                        //   padding: const EdgeInsets.only(bottom: 20),
-                        //   child: FeedCard(
-                        //     // imageUrl: item["image"],
-                        //     imageUrl: ImageString.dummyImageUrl,
-                        //     company: item["company_name"],
-                        //     posted: item["posted"],
-                        //     noFollowers: item["No_followers"],
-                        //     mainImage: item["mainImage"],
-                        //   ),
-                        // );
-
-                        final item = postList?[index];
-                        final feedPostId = item?.id ?? '2';
-                        final slug = item?.slug ?? 'post-${item?.id}';
-
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 20),
-                          child: FeedCard(
-                            like_count: item!.like_count,
-                            feedPostId: feedPostId.toString(),
-                            slug: slug,
-                            // imageUrl: item["image"],
-                            imageUrl: ImageString.dummyImageUrl,
-                            company: item!.user.first_name,
-                            // posted: '1 day ago',
-                            posted:
-                                getPostedDaysAgo(item.created_at.toString()),
-                            bodyText: item.caption,
-                            // bodyText:
-                            //     'Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source. Lorem Ipsum comes from sections 1.10.32 and 1.10.33 of "de Finibus Bonorum et Malorum" (The Extremes of Good and Evil) by Cicero, written in 45 BC. This book is a treatise on the theory of ethics, very popular during the Renaissance. The first line of Lorem Ipsum, "Lorem ipsum dolor sit amet..", comes from a line in section 1.10.32.\n\nThe standard chunk of Lorem Ipsum used since the 1500s is reproduced below for those interested. Sections 1.10.32 and 1.10.33 from "de Finibus Bonorum et Malorum" by Cicero are also reproduced in their exact original form, accompanied by English versions from the 1914 translation by H. Rackham.',
-                            noFollowers:
-                                "${item.user.followersCount} followers",
-                            // mainImage: item.image,
-                            mainImage: item.image,
-                            // mainImage:  ImageString.placeHolderImage,
-                            initialLiked: item.isLiked,
-                            onCommentTap: () {
-                              setState(
-                                  () => activePostId = feedPostId.toString());
-                              // FocusScope.of(context)
-                              //     .requestFocus(_commentFocusNode);
-                              // Delayed focus ensures TextField is built first
-                              // WidgetsBinding.instance.addPostFrameCallback(
-                              //   (_) {
-                              //     FocusScope.of(context)
-                              //         .requestFocus(_commentFocusNode);
-                              //   },
-                              // );
-                              commentBottomSheet(item.comments);
-                            },
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            width: 1,
+                            color: Color.fromRGBO(237, 241, 243, 1),
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            width: 1,
+                            color: Color.fromRGBO(237, 241, 243, 1),
+                          ),
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            width: 1,
+                            color: Color.fromRGBO(237, 241, 243, 1),
+                          ),
+                        ),
+                      ),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const CreateFeedPostView(),
                           ),
                         );
                       },
-                    )
-                  : const CircularProgressIndicator(),
-              const SizedBox(
-                height: 30,
-              ),
-            ],
+                    )),
+                  ],
+                ),
+                const SizedBox(
+                  height: 30,
+                ),
+                // feedPostsData != null
+                postList != null
+                    ? ListView.builder(
+                        physics: const NeverScrollableScrollPhysics(),
+                        shrinkWrap: true,
+                        itemCount: filteredPostList?.length,
+                        padding: const EdgeInsets.only(bottom: 16),
+                        itemBuilder: (context, index) {
+                          // final item = uList[index];
+                          // return Padding(
+                          //   padding: const EdgeInsets.only(bottom: 20),
+                          //   child: FeedCard(
+                          //     // imageUrl: item["image"],
+                          //     imageUrl: ImageString.dummyImageUrl,
+                          //     company: item["company_name"],
+                          //     posted: item["posted"],
+                          //     noFollowers: item["No_followers"],
+                          //     mainImage: item["mainImage"],
+                          //   ),
+                          // );
+
+                          final item = filteredPostList?[index];
+                          final feedPostId = item?.id ?? '2';
+                          final slug = item?.slug ?? 'post-${item?.id}';
+
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 20),
+                            child: FeedCard(
+                              like_count: item!.like_count,
+                              feedPostId: feedPostId.toString(),
+                              slug: slug,
+                              // imageUrl: item["image"],
+                              imageUrl: ImageString.dummyImageUrl,
+                              company: item!.user.first_name,
+                              // posted: '1 day ago',
+                              posted:
+                                  getPostedDaysAgo(item.created_at.toString()),
+                              bodyText: item.caption,
+                              // bodyText:
+                              //     'Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source. Lorem Ipsum comes from sections 1.10.32 and 1.10.33 of "de Finibus Bonorum et Malorum" (The Extremes of Good and Evil) by Cicero, written in 45 BC. This book is a treatise on the theory of ethics, very popular during the Renaissance. The first line of Lorem Ipsum, "Lorem ipsum dolor sit amet..", comes from a line in section 1.10.32.\n\nThe standard chunk of Lorem Ipsum used since the 1500s is reproduced below for those interested. Sections 1.10.32 and 1.10.33 from "de Finibus Bonorum et Malorum" by Cicero are also reproduced in their exact original form, accompanied by English versions from the 1914 translation by H. Rackham.',
+                              noFollowers:
+                                  "${item.user.followersCount} followers",
+                              // mainImage: item.image,
+                              mainImage: item.image,
+                              // mainImage:  ImageString.placeHolderImage,
+                              initialLiked: item.isLiked,
+                              onCommentTap: () {
+                                setState(
+                                    () => activePostId = feedPostId.toString());
+                                // FocusScope.of(context)
+                                //     .requestFocus(_commentFocusNode);
+                                // Delayed focus ensures TextField is built first
+                                // WidgetsBinding.instance.addPostFrameCallback(
+                                //   (_) {
+                                //     FocusScope.of(context)
+                                //         .requestFocus(_commentFocusNode);
+                                //   },
+                                // );
+                                commentBottomSheet(item.comments);
+                              },
+                            ),
+                          );
+                        },
+                      )
+                    : const CircularProgressIndicator(),
+                const SizedBox(
+                  height: 30,
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -554,13 +580,40 @@ class _FeedCardState extends State<FeedCard> {
   bool isExpanded = false;
   late bool liked;
   late int like_count;
+  bool isOverflowing = false;
+
+  final GlobalKey _textKey = GlobalKey();
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     liked = widget.initialLiked;
     like_count = widget.like_count;
+
+    // Check if body text overflows after the first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkOverflow());
+  }
+
+  void _checkOverflow() {
+    final renderBox = _textKey.currentContext?.findRenderObject() as RenderBox?;
+    if (renderBox != null) {
+      final size = renderBox.size;
+      final textPainter = TextPainter(
+        text: TextSpan(
+          text: widget.bodyText,
+          style: mTextStyle12(
+            mFontWeight: FontWeight.w400,
+            mColor: const Color.fromARGB(255, 84, 76, 76),
+          ),
+        ),
+        maxLines: 2,
+        textDirection: TextDirection.ltr,
+      );
+      textPainter.layout(maxWidth: size.width);
+      setState(() {
+        isOverflowing = textPainter.didExceedMaxLines;
+      });
+    }
   }
 
   @override
@@ -582,10 +635,6 @@ class _FeedCardState extends State<FeedCard> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // CircleAvatar(
-              //   backgroundColor: Colors.transparent,
-              //   backgroundImage: NetworkImage(widget.imageUrl),
-              // ),
               SvgPicture.asset(
                 ImageString.profileIcon,
                 height: 40,
@@ -615,7 +664,6 @@ class _FeedCardState extends State<FeedCard> {
                 bgColor: Colors.white,
                 txtClr: Colors.grey[700],
                 border: true,
-                // bgColor: const Color(0xffEFF0F6),
               ),
               const SizedBox(width: 8),
               greyContainer(
@@ -633,42 +681,37 @@ class _FeedCardState extends State<FeedCard> {
               padding: const EdgeInsets.fromLTRB(2.0, 6.0, 2.0, 20.0),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(14),
-                // child: Image.asset(
-                //   widget.mainImage!,
-                //   fit: BoxFit.cover,
-                //   color: Colors.grey[400],
-                // ),
                 child: FadeInImage.assetNetwork(
                   placeholder: ImageString.placeHolderImage,
                   placeholderColor: Colors.grey[400],
                   placeholderFit: BoxFit.cover,
-                  // image: widget.mainImage ?? "",
-                  image: Urls.getFullImageUrl(widget.mainImage),                ),
+                  image: Urls.getFullImageUrl(widget.mainImage),
+                ),
               ),
             ),
-
           if (widget.mainImage == null ||
               widget.mainImage == 'http://example.com/image.jpg' ||
               widget.mainImage == '')
-            SizedBox(
-              height: 20,
-            ),
+            const SizedBox(height: 20),
 
           /// Body Text with Read More
           AnimatedCrossFade(
             firstChild: Text(
               widget.bodyText,
+              key: _textKey,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: mTextStyle12(
-                  mFontWeight: FontWeight.w400,
-                  mColor: const Color.fromARGB(255, 84, 76, 76)),
+                mFontWeight: FontWeight.w400,
+                mColor: const Color.fromARGB(255, 84, 76, 76),
+              ),
             ),
             secondChild: Text(
               widget.bodyText,
               style: mTextStyle12(
-                  mFontWeight: FontWeight.w400,
-                  mColor: const Color.fromARGB(255, 84, 76, 76)),
+                mFontWeight: FontWeight.w400,
+                mColor: const Color.fromARGB(255, 84, 76, 76),
+              ),
             ),
             crossFadeState: isExpanded
                 ? CrossFadeState.showSecond
@@ -676,32 +719,30 @@ class _FeedCardState extends State<FeedCard> {
             duration: const Duration(milliseconds: 300),
           ),
 
-          /// Read more / Read less button
-          // if (widget.bodyText.length > 100)
-          GestureDetector(
-            onTap: () => setState(() => isExpanded = !isExpanded),
-            child: Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Text(
-                isExpanded ? "Read less..." : "Read more...",
-                style: mTextStyle12(
-                  // mColor: const Color(0xff8F8F8F),
-                  mColor: Colors.blue,
+          /// Read more / Read less button only if overflowing
+          if (isOverflowing)
+            GestureDetector(
+              onTap: () => setState(() => isExpanded = !isExpanded),
+              child: Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(
+                  isExpanded ? "Read less..." : "Read more...",
+                  style: mTextStyle12(
+                    mColor: Colors.blue,
+                  ),
                 ),
               ),
             ),
-          ),
 
-          const SizedBox(
-            height: 10,
-          ),
+          const SizedBox(height: 10),
+
+          /// Actions Row (Like / Comment / Share / Send)
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               InkWell(
                 onTap: () {
                   final _prefs = sl<PreferencesManager>();
-
                   final user_id = _prefs.getUserId();
                   if (liked) {
                     final map = {'user_id': user_id ?? '2', 'action': 'unlike'};
@@ -716,28 +757,20 @@ class _FeedCardState extends State<FeedCard> {
                   }
                   setState(() {
                     liked = !liked;
-                    setState(() {
-                      if (liked) {
-                        like_count += 1;
-                      } else {
-                        like_count -= 1;
-                      }
-                    });
+                    like_count += liked ? 1 : -1;
                   });
                 },
                 child: Column(
                   children: [
                     SvgPicture.asset(
                       ImageString.likeIcon,
-                      color: !liked
-                          ? const Color.fromARGB(255, 88, 92, 96)
-                          : Colors.blue,
+                      color: liked
+                          ? Colors.blue
+                          : const Color.fromARGB(255, 88, 92, 96),
                     ),
-                    const SizedBox(
-                      height: 5,
-                    ),
+                    const SizedBox(height: 5),
                     Text(
-                      '${like_count} Like',
+                      '$like_count Like',
                       style: const TextStyle(
                         color: Color.fromARGB(255, 88, 92, 96),
                         fontWeight: FontWeight.w500,
@@ -750,65 +783,60 @@ class _FeedCardState extends State<FeedCard> {
                 onTap: widget.onCommentTap,
                 child: Column(
                   children: [
-                    // Icon(Icons.comment),
                     SvgPicture.asset(
                       ImageString.commentIcon,
                       color: const Color.fromARGB(255, 88, 92, 96),
                     ),
-                    const SizedBox(
-                      height: 5,
-                    ),
-
+                    const SizedBox(height: 5),
                     const Text(
                       'Comment',
                       style: TextStyle(
-                          color: Color.fromARGB(255, 88, 92, 96),
-                          fontWeight: FontWeight.w500),
+                        color: Color.fromARGB(255, 88, 92, 96),
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ],
                 ),
               ),
-
               InkWell(
+                onTap: () {
+                  //final baseUrl = "https://leafyscape.com/api/feed/post";
+                  final baseUrl = "https://dummyUrl.com/api/feed/post";
+                  final url = "$baseUrl/${widget.slug}";
+                  developer.log('url: $url');
+                  Share.share("Check out this post: $url");
+                },
                 child: Column(
                   children: [
-                    // Icon(Icons.share),
                     SvgPicture.asset(
                       ImageString.shareIcon,
                       color: const Color.fromARGB(255, 88, 92, 96),
                     ),
-                    const SizedBox(
-                      height: 5,
-                    ),
-
+                    const SizedBox(height: 5),
                     const Text(
                       'Share',
                       style: TextStyle(
-                          color: Color.fromARGB(255, 88, 92, 96),
-                          fontWeight: FontWeight.w500),
+                        color: Color.fromARGB(255, 88, 92, 96),
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ],
                 ),
               ),
-
-
               InkWell(
                 child: Column(
                   children: [
-                    // Icon(Icons.send),
                     SvgPicture.asset(
                       ImageString.sendIcon,
                       color: const Color.fromARGB(255, 88, 92, 96),
                     ),
-                    const SizedBox(
-                      height: 5,
-                    ),
-
+                    const SizedBox(height: 5),
                     const Text(
                       'Send',
                       style: TextStyle(
-                          color: Color.fromARGB(255, 88, 92, 96),
-                          fontWeight: FontWeight.w500),
+                        color: Color.fromARGB(255, 88, 92, 96),
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ],
                 ),
@@ -821,4 +849,3 @@ class _FeedCardState extends State<FeedCard> {
   }
 }
 
-/// Customized Floating Action Button

@@ -509,6 +509,18 @@ class _UserProfileScreen2State extends State<UserProfileScreen2> {
                                 true,
                               ],
                               onEditTap: () {
+                                // Navigator.push(
+                                //   context,
+                                //   MaterialPageRoute(
+                                //     builder: (context) => BlocProvider.value(
+                                //       value: context.read<DetailedSignupBloc>(),
+                                //       child: UserEducationApprovalScreen(
+                                //         eduList: data.educations,
+                                //       ),
+                                //     ),
+                                //   ),
+                                // );
+
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
@@ -519,7 +531,20 @@ class _UserProfileScreen2State extends State<UserProfileScreen2> {
                                       ),
                                     ),
                                   ),
-                                );
+                                ).then((value) async {
+                                  if (value == true) { // return true if education updated
+                                    final bloc = context.read<MyProfileBloc>();
+                                    final _prefs = sl<PreferencesManager>();
+                                    final user_id = _prefs.getUserId();
+
+                                    // Small delay to make sure backend update is complete
+                                    await Future.delayed(Duration(milliseconds: 300));
+
+                                    bloc.add(LoadMyProfileDetails(user_id ?? '6'));
+                                  }
+                                });
+
+
                               },
 
                               editText: "Add Education",

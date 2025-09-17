@@ -22,4 +22,10 @@ abstract class ForgotPasswordApiService {
   Future<HttpResponse<void>> changePassword(
       @Body() Map<String, dynamic> body,
       );
+
+  @POST(Urls.resetPasswordWithOTP)
+  Future<HttpResponse<void>> resetPasswordWithOTP(
+      @Body() Map<String, dynamic> body,
+   );
+
 }

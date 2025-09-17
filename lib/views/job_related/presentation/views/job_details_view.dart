@@ -185,7 +185,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
 
               if (state is JobDetailsLoaded) {
                 final data = state.jobDetailsEntity;
-                developer.log('Job details loaded successfully');
+                developer.log('Job details loaded successfully: ${state.jobDetailsEntity}');
                 developer.log('Job Profile: ${data.jobProfile}');
                 developer.log('Company Name: ${data.company_name}');
                 developer.log('Job Description: ${data.job_description}');
@@ -196,7 +196,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      height: 93,
+                     // height: 93,
                       width: double.infinity,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(10),
@@ -271,7 +271,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                                       width: 18,
                                     ),
                                     greyContainer(
-                                        text: "2 weeks ago",
+                                        text: data.postedDaysAgo,
                                         bgColor: Color(0xffEFF0F6))
                                   ],
                                 ),
@@ -300,6 +300,8 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                               ? data.cityChoice!.join(", ")
                               : 'City Choice'),
                         ),
+
+
                         jobRelatedOptions(title: "45 Applicants"),
                       ],
                     ),

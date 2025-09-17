@@ -653,7 +653,7 @@ class _SignInPageUniversityStudentState extends State<SignupAsAnyOne> {
                     mSpacer(mHeight: 2.0),
 
                     IgnorePointer(
-                      ignoring: true,
+                      ignoring: false,
                       child: Opacity(
                         opacity: 0.7, // slightly greyed out to indicate disabled
                         child: CustomTextField(
