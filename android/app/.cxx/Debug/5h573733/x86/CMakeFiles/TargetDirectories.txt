@@ -1,0 +1,2 @@
+/Users/mohitmudgal/jobflutter/android/app/.cxx/Debug/5h573733/x86/CMakeFiles/edit_cache.dir
+/Users/mohitmudgal/jobflutter/android/app/.cxx/Debug/5h573733/x86/CMakeFiles/rebuild_cache.dir
