@@ -23,7 +23,7 @@ class RemoteLoginBloc extends Bloc<RemoteLoginEvent, RemoteLoginState> {
     try {
       emit(const RemoteLoginLoading());
       final response = await _loginUsecase.userLogin(event.loginMap);
-      developer.log('Ending up in bloc succes : ${response.data!}');
+      developer.log('Ending up in bloc succes : ${response.data}');
 
       emit(RemoteLoginLoaded(response.data!));
     } catch (e) {

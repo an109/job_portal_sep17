@@ -31,8 +31,9 @@ class UserDetailEntity {
   final List<UserEducationEntity> educations;
   final List<UserExperienceEntity> experiences;
   final List<ProfileSkillEntity> skills;
+  final String? user_profile_pic;
 
-  UserDetailEntity({
+  UserDetailEntity( {
     required this.id,
     required this.user_id,
     required this.first_name,
@@ -64,6 +65,7 @@ class UserDetailEntity {
     required this.educations,
     required this.experiences,
     required this.skills,
+    this.user_profile_pic,
   });
 
   // Add this toJson method
@@ -79,9 +81,6 @@ class UserDetailEntity {
       'aadhaar_number': aadhaarNumber,
       'aadhaar_card_file': aadhaarCardFile,
       'is_aadhaar_verified': isAadhaarVerified,
-      // For currentLocation and jobLocation, you might need to send their IDs
-      // or a specific structure if the API expects it.
-      // Assuming they are just strings for now, or you'd need to map them back to IDs.
       'current_location': currentLocation, // This might need to be 'current_location_id'
       'job_location': jobLocation, // This might need to be 'job_location_id'
       'gender': gender,

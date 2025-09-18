@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer' as developer;
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pinput/pinput.dart';
 import 'package:job_portal/views/signup_student/presentation/bloc/remote_signup_bloc/remote_signup_bloc.dart';
 import 'package:job_portal/views/signup_student/presentation/bloc/remote_signup_bloc/remote_signup_event.dart';
 import 'package:job_portal/views/signup_student/presentation/bloc/verify_otp_bloc/verify_otp_bloc.dart';
@@ -15,8 +15,6 @@ import '../../../../injection_container.dart';
 import '../../../../ui_helper/ui_helper.dart';
 import '../../../../utils/resourses/data_state.dart';
 import '../../../../widgets/widgets.dart';
-import '../../../detailed_signup_student/data/data_source/detailed_api_service.dart';
-import '../../../detailed_signup_student/data/repository/detailed_signup_repository_impl.dart';
 import '../../../detailed_signup_student/domain/repository/detailed_signup_repository.dart';
 import '../../../login/presentation/views/login_page_first_view.dart';
 import '../../../detailed_signup_student/presentation/views/signup_as_anyone_view.dart';
@@ -30,8 +28,8 @@ class SignUpStudent_2 extends StatefulWidget {
 }
 
 class _SignUpStudent_2State extends State<SignUpStudent_2> {
-  final List<TextEditingController> _otpControllers = List.generate(4, (index) => TextEditingController());
-  final List<FocusNode> _otpFocusNodes = List.generate(4, (index) => FocusNode());
+  final TextEditingController _pinController = TextEditingController();
+  final FocusNode _pinFocusNode = FocusNode();
   Timer? _timer;
   int _start = 15;
   bool _canResend = false;
@@ -40,21 +38,6 @@ class _SignUpStudent_2State extends State<SignUpStudent_2> {
   void initState() {
     super.initState();
     startTimer();
-
-    // Set up focus node listeners
-    for (int i = 0; i < _otpFocusNodes.length; i++) {
-      _otpFocusNodes[i].addListener(() {
-        if (_otpFocusNodes[i].hasFocus && _otpControllers[i].text.isEmpty) {
-          // Move focus to the first empty field
-          for (int j = 0; j < _otpControllers.length; j++) {
-            if (_otpControllers[j].text.isEmpty) {
-              FocusScope.of(context).requestFocus(_otpFocusNodes[j]);
-              break;
-            }
-          }
-        }
-      });
-    }
   }
 
   void startTimer() {
@@ -81,12 +64,8 @@ class _SignUpStudent_2State extends State<SignUpStudent_2> {
   @override
   void dispose() {
     _timer?.cancel();
-    for (var controller in _otpControllers) {
-      controller.dispose();
-    }
-    for (var node in _otpFocusNodes) {
-      node.dispose();
-    }
+    _pinController.dispose();
+    _pinFocusNode.dispose();
     super.dispose();
   }
 
@@ -97,40 +76,36 @@ class _SignUpStudent_2State extends State<SignUpStudent_2> {
     startTimer();
   }
 
-  String getOtp() {
-    return _otpControllers.map((controller) => controller.text).join();
-  }
-
-  void _handleOtpInput(String value, int index) {
-    if (value.length == 1) {
-      // Move to next field if available
-      if (index < 3) {
-        FocusScope.of(context).requestFocus(_otpFocusNodes[index + 1]);
-      } else {
-        // Last field - remove focus
-        _otpFocusNodes[index].unfocus();
-      }
-    } else if (value.isEmpty) {
-      // Move to previous field if available
-      if (index > 0) {
-        FocusScope.of(context).requestFocus(_otpFocusNodes[index - 1]);
-      }
-    }
-  }
-
-  void _handlePaste(String value) {
-    // Only accept if value is exactly 4 digits
-    if (value.length == 4 && int.tryParse(value) != null) {
-      for (int i = 0; i < 4; i++) {
-        _otpControllers[i].text = value[i];
-      }
-      // Move focus to the last field
-      FocusScope.of(context).requestFocus(_otpFocusNodes[3]);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
+    // Default pin theme
+    final defaultPinTheme = PinTheme(
+      width: 56,
+      height: 56,
+      textStyle: const TextStyle(
+        fontSize: 20,
+        color: Color.fromRGBO(30, 60, 87, 1),
+        fontWeight: FontWeight.w600,
+      ),
+      decoration: BoxDecoration(
+        border: Border.all(color: const Color.fromRGBO(234, 239, 243, 1)),
+        borderRadius: BorderRadius.circular(8),
+      ),
+    );
+
+    // Focused pin theme
+    final focusedPinTheme = defaultPinTheme.copyDecorationWith(
+      border: Border.all(color: const Color.fromRGBO(114, 178, 238, 1)),
+      borderRadius: BorderRadius.circular(8),
+    );
+
+    // Submitted pin theme
+    final submittedPinTheme = defaultPinTheme.copyWith(
+      decoration: defaultPinTheme.decoration?.copyWith(
+        color: const Color.fromRGBO(234, 239, 243, 1),
+      ),
+    );
+
     return Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
@@ -159,72 +134,25 @@ class _SignUpStudent_2State extends State<SignUpStudent_2> {
                         style: mTextStyle12()),
                     const SizedBox(height: 2),
 
-                    // OTP Input Fields
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: List.generate(4, (index) {
-                        return SizedBox(
-                          width: 60,
-                          height: 60,
-                          child: TextFormField(
-                            controller: _otpControllers[index],
-                            focusNode: _otpFocusNodes[index],
-                            keyboardType: TextInputType.number,
-                            textAlign: TextAlign.center,
-                            maxLength: 1,
-                            style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            decoration: InputDecoration(
-                              counterText: '',
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: const BorderSide(
-                                  color: Colors.grey,
-                                  width: 1,
-                                ),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: const BorderSide(
-                                  color: Colors.blue,
-                                  width: 2,
-                                ),
-                              ),
-                            ),
-                            onChanged: (value) => _handleOtpInput(value, index),
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly
-                            ],
-                            onTap: () {
-                              // Select all text when tapped
-                              _otpControllers[index].selection = TextSelection(
-                                baseOffset: 0,
-                                extentOffset: _otpControllers[index].text.length,
-                              );
-                            },
-                          ),
-                        );
-                      }),
-                    ),
-
-                    // Paste button
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: () async {
-                          ClipboardData? data = await Clipboard.getData(Clipboard.kTextPlain);
-                          if (data != null && data.text != null) {
-                            _handlePaste(data.text!);
-                          }
+                    // Pinput for OTP entry
+                    Center(
+                      child: Pinput(
+                        length: 4,
+                        controller: _pinController,
+                        focusNode: _pinFocusNode,
+                        defaultPinTheme: defaultPinTheme,
+                        focusedPinTheme: focusedPinTheme,
+                        submittedPinTheme: submittedPinTheme,
+                        showCursor: true,
+                        onCompleted: (pin) {
+                          // Auto-submit when OTP is complete
+                          Map<String, dynamic> emailOtpMap = {
+                            "email": widget.Email,
+                            "otp": pin,
+                          };
+                          developer.log(' Sending OTP verification for: ${widget.Email}');
+                          context.read<VerifyOtpBloc>().add(LoadVerifyOtp(emailOtpMap));
                         },
-                        child: Text(
-                          "Paste",
-                          style: TextStyle(
-                            color: AppColors.blueTextColor,
-                          ),
-                        ),
                       ),
                     ),
 
@@ -279,7 +207,7 @@ class _SignUpStudent_2State extends State<SignUpStudent_2> {
                       child: commonRedContainer(
                         text: "Verify Email",
                         onTap: () {
-                          String otp = getOtp();
+                          String otp = _pinController.text;
                           if (otp.length != 4) {
                             showSnackbar("Please enter a valid 4-digit OTP", context);
                             return;

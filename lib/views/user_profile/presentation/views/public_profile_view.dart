@@ -15,6 +15,8 @@ import 'package:job_portal/views/user_profile/presentation/views/User_messages_s
 import 'package:job_portal/views/user_profile/presentation/views/follower_following_screens/followers_view.dart';
 import 'package:job_portal/views/user_profile/presentation/views/follower_following_screens/following_view.dart';
 
+import '../../../../utils/constants/urls.dart';
+
 class UserPublicProfileScreen extends StatefulWidget {
   final bool selfProfile;
   final UserProfileEntity userProfile;
@@ -27,18 +29,33 @@ class UserPublicProfileScreen extends StatefulWidget {
 }
 
 class _UserPublicProfileScreenState extends State<UserPublicProfileScreen> {
+  String _profilePicPath = "";
+
+  @override
+  void initState() {
+    super.initState();
+    final prefs = sl<PreferencesManager>();
+    _profilePicPath = prefs.getString('user_profile_pic') ?? '';
+  }
+
   @override
   void didChangeDependencies() {
     // TODO: implement didChangeDependencies
     super.didChangeDependencies();
 
     final _prefs = sl<PreferencesManager>();
+    setState(() {
+      _profilePicPath = _prefs.getString('user_profile_pic') ?? '';
+    });
 
     final user_id = _prefs.getUserId();
 
     final bloc = context.read<ProfileBloc>();
     bloc.add(LoadPublicProfileWithFollowersAndFollowing(user_id ?? '77'));
+
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -106,11 +123,25 @@ class _UserPublicProfileScreenState extends State<UserPublicProfileScreen> {
                         ),
                       ),
                       Positioned(
-                        bottom: -20, // this overlaps below the image
+                        bottom: -20,
                         left: 16,
-                        child: SvgPicture.asset(
-                          ImageString.profileIcon,
-                          height: 80,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                          child: _profilePicPath.isNotEmpty
+                              ? ClipOval(
+                            child: Image.network(
+                              Urls.getFullImageUrl(_profilePicPath),
+                              width: 70,
+                              height: 70,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return SvgPicture.asset("assets/Icons/profile_icon.svg");
+                              },
+                            ),
+                          )
+                              : SvgPicture.asset("assets/Icons/profile_icon.svg"),
                         ),
                       ),
                     ],
@@ -131,7 +162,7 @@ class _UserPublicProfileScreenState extends State<UserPublicProfileScreen> {
                                     fontWeight: FontWeight.bold, fontSize: 20)),
                             const SizedBox(height: 4),
                             Text(
-                                '@${profileData.publicProfile.first_name.toLowerCase()}',
+                                '${profileData.publicProfile.email.toLowerCase()}',
                                 style: const TextStyle(color: Colors.grey)),
                             const SizedBox(height: 8),
                             Text(profileData.publicProfile.user_type.isNotEmpty
@@ -622,3 +653,10 @@ class SeeMoreDivider extends StatelessWidget {
     );
   }
 }
+Widget _buildPlaceholder() {
+  return Container(
+    color: Colors.grey.shade200,
+    child: Icon(Icons.person, size: 40, color: Colors.grey.shade600),
+  );
+}
+

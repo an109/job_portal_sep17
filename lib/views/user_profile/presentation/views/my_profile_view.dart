@@ -1,10 +1,12 @@
 import 'dart:developer' as developer show log;
+import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:job_portal/injection_container.dart';
 import 'package:job_portal/utils/constants/image_string.dart';
 import 'package:job_portal/utils/storage/shared_preference.dart';
@@ -23,7 +25,9 @@ import 'package:job_portal/views/user_profile/presentation/views/choose_your_tem
 import 'package:job_portal/views/user_profile/presentation/views/profile_editing_views/edit_about_view.dart';
 import 'package:job_portal/views/user_profile/presentation/views/profile_editing_views/edit_career_objective_view.dart';
 import 'package:job_portal/views/user_profile/presentation/views/profile_editing_views/edit_language_view.dart';
+import '../../../../Widgets/widgets.dart';
 import '../../../../ui_helper/ui_helper.dart';
+import '../../../../utils/constants/urls.dart';
 import '../../../detailed_signup_student/presentation/bloc/signup_as_anyone_bloc/detailed_signup_bloc.dart';
 import '../../../user_education_approval/presentation/view/user_education_approval_view.dart.dart';
 import '../bloc/your_experience_bloc/your_experience_bloc.dart';
@@ -46,6 +50,16 @@ class _UserProfileScreen2State extends State<UserProfileScreen2> {
   var userProfileDetails;
 
   bool shouldUploadResume = true;
+  String _profilePicPath = "";
+
+  @override
+  void initState() {
+    super.initState();
+    // sl<PreferencesManager>().setString('user_profile_pic', _profilePicPath);
+    final prefs = sl<PreferencesManager>();
+    _profilePicPath = prefs.getString('user_profile_pic') ?? '';
+  }
+
 
   @override
   void didChangeDependencies() {
@@ -117,6 +131,24 @@ class _UserProfileScreen2State extends State<UserProfileScreen2> {
         }
       },
     );
+  }
+  final ImagePicker _picker = ImagePicker();
+
+  Future<void> _pickImage() async {
+    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      final file = File(pickedFile.path);
+
+      try {
+        final formData = FormData.fromMap({
+          'file': await MultipartFile.fromFile(file.path, filename: file.path.split('/').last),
+        });
+
+        context.read<UploadFileBloc>().add(LoadUploadFile(formData));
+      } catch (e) {
+        showSnackbar('Upload failed: $e', context);
+      }
+    }
   }
 
   void _showEditLanguageDialog(BuildContext context, String language) {
@@ -229,13 +261,58 @@ class _UserProfileScreen2State extends State<UserProfileScreen2> {
       body: SingleChildScrollView(
         child: Column(
           children: [
+            // Center(
+            //   child: Container(
+            //     height: 88,
+            //     width: 64,
+            //     child: SvgPicture.asset("assets/Icons/profile_icon.svg"),
+            //   ),
+            // ),
+
             Center(
-              child: Container(
-                height: 88,
-                width: 64,
-                child: SvgPicture.asset("assets/Icons/profile_icon.svg"),
+              child: Stack(
+                children: [
+                  Container(
+                    height: 88,
+                    width: 88,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.grey.shade300, width: 1),
+                    ),
+                    child: ClipOval(
+                      child: _profilePicPath.isNotEmpty
+                          ? Image.network(
+                        Urls.getFullImageUrl(_profilePicPath),
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return _buildPlaceholder();
+                        },
+                      )
+                          : _buildPlaceholder(),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: InkWell(
+                      onTap: _pickImage,
+                      child: Container(
+                        padding: EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(color: Colors.black12, blurRadius: 2, offset: Offset(0, 1))
+                          ],
+                        ),
+                        child: Icon(Icons.edit, size: 16, color: Colors.blue),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
+
             // resumeCard(null),
             BlocBuilder<MyProfileBloc, MyProfileState>(
               builder: (context, state) {
@@ -376,6 +453,12 @@ class _UserProfileScreen2State extends State<UserProfileScreen2> {
                               listener: (context, state) {
                                 if (state is UploadFileLoaded) {
                                   final resumeUrl = state.uploadFileEntity;
+                                  final url = state.uploadFileEntity.url.first;
+                                  sl<PreferencesManager>().setString('user_profile_pic', url);
+                                  setState(() {
+                                    _profilePicPath = url;
+                                  });
+                                  showSnackbar('Profile picture updated', context);
                                   context.read<UploadResumeBloc>().add(ResetUploadResume());
                                   final map = {'resume': resumeUrl.url.first};
                                   developer.log('Resume url : ${resumeUrl.url.first}');
@@ -442,12 +525,6 @@ class _UserProfileScreen2State extends State<UserProfileScreen2> {
                             ),
                             profileSection(
                               title: "Skills",
-                              // items: [
-                              //   "Digital Marketing",
-                              //   "Sales",
-                              //   "UI design",
-                              //   "SEO"
-                              // ],
                               items: data.skills.map((s) => s.domain).toList(),
                               statusList: [
                                 false,
@@ -469,7 +546,6 @@ class _UserProfileScreen2State extends State<UserProfileScreen2> {
                             ),
                             profileSection(
                               title: "Work Experience",
-                              // items: ["Microsoft", "Startup", "Google"],
                               items: data.experiences
                                   .where((e) => (e.current_company ?? '').isNotEmpty)
                                   .map((e) => e.current_company ?? '')
@@ -487,18 +563,16 @@ class _UserProfileScreen2State extends State<UserProfileScreen2> {
                                     ),
                                   ),
                                 ).then((value) {
-                                  // final bloc = context.read<MyProfileBloc>();
-                                  // // ignore: unused_local_variable
-                                  // final _prefs = sl<PreferencesManager>();
-                                  // final user_id = _prefs.getUserId();
-                                  // bloc.add(LoadMyProfileDetails(user_id ?? '6'));
+                                  final bloc = context.read<MyProfileBloc>();
+                                  final _prefs = sl<PreferencesManager>();
+                                  final user_id = _prefs.getUserId();
+                                  bloc.add(LoadMyProfileDetails(user_id ?? '6'));
                                 });
                               },
                               editText: "Add Work Experience",
                             ),
                             profileSection(
                               title: "Education",
-                              // items: ["B.Tech", "Diploma", "M.Tech"],
                               items: data.educations
                                   .where((e) => e.level.isNotEmpty)
                                   .map((e) => e.level)
@@ -773,4 +847,10 @@ String formatBytesSimple(int bytes) {
   } else {
     return '${(bytes / (1024 * 1024)).toStringAsFixed(2)} MB';
   }
+}
+Widget _buildPlaceholder() {
+  return Container(
+    color: Colors.grey.shade200,
+    child: Icon(Icons.person, size: 40, color: Colors.grey.shade600),
+  );
 }

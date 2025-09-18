@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:job_portal/injection_container.dart';
 import 'package:job_portal/utils/storage/shared_preference.dart';
-import 'package:job_portal/views/detailed_signup_student/presentation/views/signup_as_anyone_view.dart';
 import 'package:job_portal/views/login/presentation/views/login_page_first_view.dart';
 import 'package:job_portal/views/signup_student/presentation/bloc/remote_signup_bloc/remote_signup_bloc.dart';
 import 'package:job_portal/views/signup_student/presentation/bloc/remote_signup_bloc/remote_signup_event.dart';
@@ -11,6 +10,8 @@ import 'package:job_portal/views/signup_student/presentation/views/signup_studen
 import '../../../../ui_helper/ui_helper.dart';
 import '../../../../widgets/widgets.dart';
 import 'dart:developer' as developer show log;
+
+import '../../../user_profile/presentation/views/user_terms_and_conditions_view.dart';
 
 class SignUpStudent1 extends StatefulWidget {
   final String user_type;
@@ -190,7 +191,9 @@ class _SignUpStudent1State extends State<SignUpStudent1> {
                     Text("By signing up, you agree to our",
                         style: TextStyle(fontSize: 15)),
                     InkWell(
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(context, MaterialPageRoute( builder: (context) => UserTermsAndConditionsScreen()));
+                      },
                       child: Text(
                         " Terms and Conditions",
                         style: mTextStyle14(

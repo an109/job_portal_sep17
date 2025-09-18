@@ -454,8 +454,8 @@ class _UserSkillsApprovalScreenState extends State<UserSkillsApprovalScreen> {
 
                                   developer.log(' [SkillsScreen] Form valid. Starting upload...');
                                   await uploadCertificates();
-                                  Navigator.pop(context);
                                   _prefs.clear(PreferencesManager.SKILL_PARAMS);
+                                  Navigator.pop(context);
                                 } else {
                                   showSnackbar('Please fill all fields.', context);
                                   developer.log(' [SkillsScreen] Form validation failed');

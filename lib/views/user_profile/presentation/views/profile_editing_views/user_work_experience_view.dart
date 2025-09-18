@@ -47,8 +47,10 @@ class _UserExperienceApprovalScreenState extends State<UserExperienceApprovalScr
 
   final _formKey = GlobalKey<FormState>();
 
-  // 🔹 Track which company's certificate is being uploaded
+  // Track which company's certificate is being uploaded
   String? _lastUploadedCompany;
+  Map<String, String> uploadedCertificateUrls = {};
+  bool _isUploading = false;
 
   @override
   void initState() {
@@ -58,6 +60,12 @@ class _UserExperienceApprovalScreenState extends State<UserExperienceApprovalScr
     for (var exp in widget.userExperience) {
       if (exp.current_company != null) {
         workedCompanyList.add(exp.current_company!);
+
+        // Store the certificate URL if it exists
+        if (exp.experienceCertificate != null && exp.experienceCertificate != "no_file.pdf") {
+          uploadedCertificateUrls[exp.current_company!] = exp.experienceCertificate!;
+        }
+
         jobExperienceControllers.add(JobExperienceFillingCardData(
           company_name: exp.current_company!,
           jobRoleController: TextEditingController(text: exp.current_job_role),
@@ -136,261 +144,285 @@ class _UserExperienceApprovalScreenState extends State<UserExperienceApprovalScr
         providers: [
           BlocProvider(create: (context) => sl<YourExperienceBloc>()),
         ],
-        child: BlocListener<YourExperienceBloc, YourExperienceState>(
-          listener: (context, state) {
-            if (state is PickExperienceProofLoaded) {
-              developer.log("File picked: ${state.experienceProof}");
-              final bloc = context.read<YourExperienceBloc>();
-              final blocProofs = bloc.experienceProofs as Map<String, PlatformFile?>;
-              for (var entry in blocProofs.entries) {
-                if (entry.value != null) {
-                  final companyName = entry.key;
-                  setState(() {
-                    experienceProofs[companyName] = entry.value!;
-                    final index = jobExperienceControllers.indexWhere((e) => e.company_name == companyName);
-                    if (index != -1) {
-                      jobExperienceControllers[index].expProof = entry.value!.name;
+        child: MultiBlocListener(
+          listeners: [
+            BlocListener<YourExperienceBloc, YourExperienceState>(
+              listener: (context, state) {
+                if (state is PickExperienceProofLoaded) {
+                  developer.log("File picked: ${state.experienceProof}");
+                  final bloc = context.read<YourExperienceBloc>();
+                  final blocProofs = bloc.experienceProofs;
+                  for (var entry in blocProofs.entries) {
+                    if (entry.value is PlatformFile) {
+                      final companyName = entry.key;
+                      final platformFile = entry.value as PlatformFile;
+                      setState(() {
+                        experienceProofs[companyName] = platformFile;
+                        final index = jobExperienceControllers.indexWhere((e) => e.company_name == companyName);
+                        if (index != -1) {
+                          jobExperienceControllers[index].expProof = platformFile.name;
+                        }
+                      });
+
+                      // Upload the file immediately after picking
+                      _uploadCertificateForCompany(companyName, platformFile);
                     }
-                  });
+                  }
+                } else if (state is PickExperienceProofError) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Failed to pick file')),
+                  );
+                } else if (state is NoExperienceProofPicked) {
+                  developer.log("No file picked");
                 }
-              }
-            } else if (state is PickExperienceProofError) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Failed to pick file')),
-              );
-            } else if (state is NoExperienceProofPicked) {
-              developer.log("No file picked");
-            }
-          },
-          child: BlocListener<UploadFileBloc, UploadFileState>(
-            listener: (context, state) {
-              if (state is UploadFileLoaded) {
-                final url = state.uploadFileEntity.url.first;
-                developer.log(' Certificate uploaded successfully: $url');
-
-                if (_lastUploadedCompany != null) {
-                  setState(() {
-                    experienceProofs[_lastUploadedCompany!] = PlatformFile(
-                      name: _lastUploadedCompany!,
-                      path: url,
-                      size: 0,
-                    );
-
-                    final index = jobExperienceControllers.indexWhere((e) => e.company_name == _lastUploadedCompany!);
-                    if (index != -1) {
-                      jobExperienceControllers[index].expProof = url;
-                    }
-                  });
-
-                  _lastUploadedCompany = null;
-                }
-              } else if (state is UploadFileError) {
-                developer.log('Upload failed');
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Failed to upload certificate')),
-                );
-              }
-            },
-            child: BlocBuilder<OpportunityBloc, OpportunityState>(
-              builder: (context, state) {
-                List<String> companies = [];
-                if (state is MasterDataLoaded) {
-                  final master = state.masterData;
-
-                  final List<CompanyItem> companiesList = (master.companies as List<CompanyItem>) ?? [];
-                  _allCompanies = companiesList.where((c) =>
-                  c.companyName != null &&
-                      !c.companyName!.contains('@') &&
-                      !c.companyName!.contains('.com'))
-                      .toList();
-
-                  final List<JobRoleItem> jobRolesList = (master.jobRoles as List<JobRoleItem>) ?? [];
-                  _allJobRoles = jobRolesList;
-
-                  companies = _allCompanies.map((c) => c.companyName!).toList();
-                  allJobRoles = _allJobRoles.map((jr) => jr.title!).toList();
-                }
-
-                return SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Company Autocomplete
-                          Autocomplete<String>(
-                            optionsBuilder: (TextEditingValue textEditingValue) {
-                              if (textEditingValue.text.isEmpty) return const Iterable<String>.empty();
-                              return companies.where((company) => company.toLowerCase().contains(textEditingValue.text.toLowerCase()));
-                            },
-                            onSelected: (selection) {
-                              if (!workedCompanyList.contains(selection)) {
-                                setState(() {
-                                  workedCompanyList.add(selection);
-                                  jobExperienceControllers.add(JobExperienceFillingCardData(
-                                    company_name: selection,
-                                    expProof: null,
-                                    jobRoleController: TextEditingController(),
-                                    start_year: TextEditingController(),
-                                    end_year: TextEditingController(),
-                                    currentCTC: TextEditingController(),
-                                  ));
-                                });
-                                searchJobfieldController.clear();
-                              }
-                            },
-                            fieldViewBuilder: (context, controller, focusNode, onSubmitted) {
-                              return TextField(
-                                controller: controller,
-                                focusNode: focusNode,
-                                decoration: InputDecoration(
-                                  hintText: "Select your company",
-                                  suffixIcon: const Icon(Icons.search),
-                                  fillColor: Colors.white,
-                                  filled: true,
-                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                                ),
-                              );
-                            },
-                          ),
-
-                          const SizedBox(height: 24),
-
-                          // Add Other Company Button
-                          GestureDetector(
-                            onTap: () {
-                              final company = searchJobfieldController.text.trim();
-                              if (!workedCompanyList.contains(company) && company.isNotEmpty) {
-                                setState(() {
-                                  workedCompanyList.add(company);
-                                  jobExperienceControllers.add(JobExperienceFillingCardData(
-                                    company_name: company,
-                                    expProof: null,
-                                    jobRoleController: TextEditingController(),
-                                    start_year: TextEditingController(),
-                                    end_year: TextEditingController(),
-                                    currentCTC: TextEditingController(),
-                                  ));
-                                });
-                              }
-                              searchJobfieldController.clear();
-                            },
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: const [
-                                Icon(Icons.add, color: Colors.blue),
-                                SizedBox(width: 8),
-                                Text("Add other company", style: TextStyle(color: Colors.blue)),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-
-                          // Experience Cards
-                          ListView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: jobExperienceControllers.length,
-                            itemBuilder: (context, index) {
-                              final curr = jobExperienceControllers[index];
-
-                              return Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  JobExperienceFillingCard(
-                                    company_name: curr.company_name,
-                                    experienceProofName: experienceProofs[curr.company_name]?.path != null
-                                        ? 'Certificate uploaded'
-                                        : (curr.expProof ?? "Upload Certificate"),
-                                    jobRoleController: curr.jobRoleController,
-                                    start_year: curr.start_year,
-                                    end_year: curr.end_year,
-                                    currentCTC: curr.currentCTC,
-                                    onTapCross: () {
-                                      setState(() {
-                                        workedCompanyList.remove(curr.company_name);
-                                        jobExperienceControllers.removeAt(index);
-                                        experienceProofs.remove(curr.company_name);
-                                      });
-                                    },
-                                    onTapPickCerti: () {
-                                      context.read<YourExperienceBloc>().add(LoadPickExperienceProof(curr.company_name));
-                                      setState(() {
-                                        _lastUploadedCompany = curr.company_name;
-                                      });
-                                    },
-                                    roles: allJobRoles,
-                                  ),
-                                  const SizedBox(height: 24),
-                                ],
-                              );
-                            },
-                          ),
-
-                          // Save Button
-                          Center(
-                            child: SizedBox(
-                              width: 150,
-                              child: nextButton(
-                                title: "Save Changes",
-                                onTap: () async {
-                                  if (_formKey.currentState?.validate() ?? false) {
-                                    await uploadProofs();
-                                    await saveExperienceChanges();
-                                  } else {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text("Please complete all fields")),
-                                    );
-                                  }
-                                },
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 50),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
               },
             ),
+            BlocListener<UploadFileBloc, UploadFileState>(
+              listener: (context, state) {
+                if (state is UploadFileLoaded) {
+                  final url = state.uploadFileEntity.url.first;
+                  developer.log('Certificate uploaded successfully: $url for company: $_lastUploadedCompany');
+
+                  if (_lastUploadedCompany != null) {
+                    setState(() {
+                      uploadedCertificateUrls[_lastUploadedCompany!] = url;
+
+                      // Update the corresponding job experience controller
+                      final index = jobExperienceControllers.indexWhere(
+                              (e) => e.company_name == _lastUploadedCompany!
+                      );
+                      if (index != -1) {
+                        jobExperienceControllers[index].expProof = url;
+                      }
+                    });
+
+                    _lastUploadedCompany = null;
+                    _isUploading = false;
+                  }
+                } else if (state is UploadFileError) {
+                  developer.log('Upload failed');
+                  _isUploading = false;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Failed to upload certificate')),
+                  );
+                }
+              },
+            ),
+          ],
+          child: BlocBuilder<OpportunityBloc, OpportunityState>(
+            builder: (context, state) {
+              List<String> companies = [];
+              if (state is MasterDataLoaded) {
+                final master = state.masterData;
+
+                final List<CompanyItem> companiesList = master.companies ?? [];
+                _allCompanies = companiesList.where((c) =>
+                c.companyName != null &&
+                    !c.companyName!.contains('@') &&
+                    !c.companyName!.contains('.com'))
+                    .toList();
+
+                final List<JobRoleItem> jobRolesList = master.jobRoles ?? [];
+                _allJobRoles = jobRolesList;
+
+                companies = _allCompanies.map((c) => c.companyName!).toList();
+                allJobRoles = _allJobRoles.map((jr) => jr.title!).toList();
+              }
+
+              return SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Company Autocomplete
+                        Autocomplete<String>(
+                          optionsBuilder: (TextEditingValue textEditingValue) {
+                            if (textEditingValue.text.isEmpty) return const Iterable<String>.empty();
+                            return companies.where((company) => company.toLowerCase().contains(textEditingValue.text.toLowerCase()));
+                          },
+                          onSelected: (selection) {
+                            if (!workedCompanyList.contains(selection)) {
+                              setState(() {
+                                workedCompanyList.add(selection);
+                                jobExperienceControllers.add(JobExperienceFillingCardData(
+                                  company_name: selection,
+                                  expProof: null,
+                                  jobRoleController: TextEditingController(),
+                                  start_year: TextEditingController(),
+                                  end_year: TextEditingController(),
+                                  currentCTC: TextEditingController(),
+                                ));
+                              });
+                              searchJobfieldController.clear();
+                            }
+                          },
+                          fieldViewBuilder: (context, controller, focusNode, onSubmitted) {
+                            return TextField(
+                              controller: controller,
+                              focusNode: focusNode,
+                              decoration: InputDecoration(
+                                hintText: "Select your company",
+                                suffixIcon: const Icon(Icons.search),
+                                fillColor: Colors.white,
+                                filled: true,
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                              ),
+                            );
+                          },
+                        ),
+
+                        const SizedBox(height: 24),
+
+                        // Add Other Company Button
+                        GestureDetector(
+                          onTap: () {
+                            final company = searchJobfieldController.text.trim();
+                            if (!workedCompanyList.contains(company) && company.isNotEmpty) {
+                              setState(() {
+                                workedCompanyList.add(company);
+                                jobExperienceControllers.add(JobExperienceFillingCardData(
+                                  company_name: company,
+                                  expProof: null,
+                                  jobRoleController: TextEditingController(),
+                                  start_year: TextEditingController(),
+                                  end_year: TextEditingController(),
+                                  currentCTC: TextEditingController(),
+                                ));
+                              });
+                            }
+                            searchJobfieldController.clear();
+                          },
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: const [
+                              Icon(Icons.add, color: Colors.blue),
+                              SizedBox(width: 8),
+                              Text("Add other company", style: TextStyle(color: Colors.blue)),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Experience Cards
+                        ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: jobExperienceControllers.length,
+                          itemBuilder: (context, index) {
+                            final curr = jobExperienceControllers[index];
+
+                            // Determine the certificate display text
+                            String certificateText;
+                            if (uploadedCertificateUrls.containsKey(curr.company_name)) {
+                              certificateText = 'Certificate uploaded ✓';
+                            } else if (curr.expProof != null && curr.expProof != "no_file.pdf") {
+                              certificateText = 'Certificate uploaded ✓';
+                            } else if (experienceProofs.containsKey(curr.company_name)) {
+                              certificateText = 'Uploading...';
+                            } else {
+                              certificateText = "Upload Certificate";
+                            }
+
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                JobExperienceFillingCard(
+                                  company_name: curr.company_name,
+                                  experienceProofName: certificateText,
+                                  jobRoleController: curr.jobRoleController,
+                                  start_year: curr.start_year,
+                                  end_year: curr.end_year,
+                                  currentCTC: curr.currentCTC,
+                                  onTapCross: () {
+                                    setState(() {
+                                      workedCompanyList.remove(curr.company_name);
+                                      jobExperienceControllers.removeAt(index);
+                                      experienceProofs.remove(curr.company_name);
+                                      uploadedCertificateUrls.remove(curr.company_name);
+                                    });
+                                  },
+                                  onTapPickCerti: () {
+                                    context.read<YourExperienceBloc>().add(LoadPickExperienceProof(curr.company_name));
+                                    setState(() {
+                                      _lastUploadedCompany = curr.company_name;
+                                    });
+                                  },
+                                  roles: allJobRoles,
+                                  isCertificateUploaded: uploadedCertificateUrls.containsKey(curr.company_name) ||
+                                      (curr.expProof != null && curr.expProof != "no_file.pdf"),
+                                ),
+                                const SizedBox(height: 24),
+                              ],
+                            );
+                          },
+                        ),
+
+                        // Save Button
+                        Center(
+                          child: SizedBox(
+                            width: 150,
+                            child: nextButton(
+                              title: "Save Changes",
+                              onTap: () async {
+                                if (_formKey.currentState?.validate() ?? false) {
+                                  if (_isUploading) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Please wait for certificate upload to complete')),
+                                    );
+                                    return;
+                                  }
+                                  await saveExperienceChanges();
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text("Please complete all fields")),
+                                  );
+                                }
+                              },
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 50),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
           ),
         ),
       ),
     );
   }
 
-  Future<void> uploadProofs() async {
+  Future<void> _uploadCertificateForCompany(String companyName, PlatformFile file) async {
+    if (file.path == null || file.path!.isEmpty) return;
+
+    setState(() {
+      _isUploading = true;
+      _lastUploadedCompany = companyName;
+    });
+
     try {
-      if (experienceProofs.isEmpty) return;
-
       final formData = FormData();
+      final fileName = file.path!.split('/').last;
 
-      for (var entry in experienceProofs.entries) {
-        final file = entry.value;
-        if (file != null && file.path != null && file.path!.isNotEmpty) {
-          final fileName = file.path!.split('/').last;
-          formData.files.add(
-            MapEntry(
-              'certificateImage',
-              await MultipartFile.fromFile(file.path!, filename: fileName),
-            ),
-          );
-        }
-      }
-
-      if (formData.files.isEmpty) {
-        developer.log("No files to upload.");
-        return;
-      }
-
-      developer.log("Uploading files: $formData");
+      formData.files.add(
+        MapEntry(
+          'certificateImage',
+          await MultipartFile.fromFile(file.path!, filename: fileName),
+        ),
+      );
 
       context.read<UploadFileBloc>().add(LoadUploadFile(formData));
-    } catch (e, s) {
-      developer.log("Error in uploading proofs: $e", stackTrace: s);
+    } catch (e) {
+      developer.log("Error uploading certificate: $e");
+      setState(() {
+        _isUploading = false;
+        _lastUploadedCompany = null;
+      });
     }
   }
 
@@ -417,6 +449,11 @@ class _UserExperienceApprovalScreenState extends State<UserExperienceApprovalScr
         throw Exception('Invalid job role: ${e.jobRoleController.text}');
       }
 
+      // Use the uploaded certificate URL, fallback to existing proof, then to "no_file.pdf"
+      final certificateUrl = uploadedCertificateUrls[e.company_name] ??
+          e.expProof ??
+          "no_file.pdf";
+
       return {
         "company_id": company.id,
         "job_role_id": jobRole.id,
@@ -424,7 +461,7 @@ class _UserExperienceApprovalScreenState extends State<UserExperienceApprovalScr
         "end_date": e.end_year.text,
         "ctc": e.currentCTC.text,
         "total_experience_years": totalExp,
-        "experience_certificate": experienceProofs[e.company_name]?.path ?? e.expProof ?? "no_file.pdf",
+        "experience_certificate": certificateUrl,
       };
     }).toList();
 
@@ -480,6 +517,7 @@ class JobExperienceFillingCard extends StatefulWidget {
   final VoidCallback onTapCross;
   final VoidCallback onTapPickCerti;
   final List<String> roles;
+  final bool isCertificateUploaded;
 
   const JobExperienceFillingCard({
     super.key,
@@ -492,6 +530,7 @@ class JobExperienceFillingCard extends StatefulWidget {
     required this.onTapCross,
     required this.onTapPickCerti,
     required this.roles,
+    this.isCertificateUploaded = false,
   });
 
   @override
@@ -619,14 +658,17 @@ class _JobExperienceFillingCardState extends State<JobExperienceFillingCard> {
                   children: [
                     SvgPicture.asset(
                       "assets/Icons/certificate.svg",
-                      color: Colors.grey,
+                      color: widget.isCertificateUploaded ? Colors.green : Colors.grey,
                       height: 12,
                       width: 12,
                     ),
                     const SizedBox(width: 4),
                     Text(
                       widget.experienceProofName ?? "Upload Certificate",
-                      style: const TextStyle(fontSize: 10),
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: widget.isCertificateUploaded ? Colors.green : Colors.grey,
+                      ),
                     ),
                   ],
                 ),

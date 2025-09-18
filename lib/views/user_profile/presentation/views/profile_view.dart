@@ -24,6 +24,7 @@ import 'package:job_portal/views/user_profile/presentation/views/public_profile_
 import 'package:job_portal/views/user_profile/presentation/views/raise_ticket_view.dart';
 import 'package:job_portal/views/user_profile/presentation/views/user_terms_and_conditions_view.dart';
 import '../../../../ui_helper/ui_helper.dart';
+import '../../../../utils/constants/urls.dart';
 import 'user_job_applications_view.dart';
 
 class UserProfileScreen1 extends StatefulWidget {
@@ -45,6 +46,14 @@ class _UserProfileScreen1State extends State<UserProfileScreen1> {
   bool _isManageAccountOpened = false;
 
   late PublicProfileEntity userProfile;
+  String _profilePicPath = "";
+
+  @override
+  void initState() {
+    super.initState();
+    final prefs = sl<PreferencesManager>();
+    _profilePicPath = prefs.getString('user_profile_pic') ?? '';
+  }
 
   @override
   void didChangeDependencies() {
@@ -52,6 +61,9 @@ class _UserProfileScreen1State extends State<UserProfileScreen1> {
 
     // ignore: unused_local_variable
     final _prefs = sl<PreferencesManager>();
+    setState(() {
+      _profilePicPath = _prefs.getString('user_profile_pic') ?? '';
+    });
 
     final user_id = _prefs.getUserId();
 
@@ -177,9 +189,19 @@ class _UserProfileScreen1State extends State<UserProfileScreen1> {
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(25),
                                 ),
-                                child: SvgPicture.asset(
-                                  "assets/Icons/profile_icon.svg",
-                                ),
+                                child: _profilePicPath.isNotEmpty
+                                    ? ClipOval(
+                                  child: Image.network(
+                                    Urls.getFullImageUrl(_profilePicPath),
+                                    width: 50,
+                                    height: 50,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return SvgPicture.asset("assets/Icons/profile_icon.svg");
+                                    },
+                                  ),
+                                )
+                                    : SvgPicture.asset("assets/Icons/profile_icon.svg"),
                               ),
                             ),
                             Padding(
@@ -207,7 +229,7 @@ class _UserProfileScreen1State extends State<UserProfileScreen1> {
                                     height: 10,
                                   ),
                                   Text(
-                                    "@${profileData.first_name.toLowerCase()}",
+                                    "${profileData.email.toLowerCase()}",
                                     style: const TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w400,
@@ -532,3 +554,10 @@ Widget UserProfileEnteries(
     ),
   );
 }
+Widget _buildPlaceholder() {
+  return Container(
+    color: Colors.grey.shade200,
+    child: Icon(Icons.person, size: 40, color: Colors.grey.shade600),
+  );
+}
+

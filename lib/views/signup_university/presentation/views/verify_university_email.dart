@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pinput/pinput.dart';
 import 'package:job_portal/views/signup_student/presentation/bloc/verify_otp_bloc/verify_otp_bloc.dart';
 import 'package:job_portal/views/signup_student/presentation/bloc/verify_otp_bloc/verify_otp_state.dart';
 import 'package:job_portal/views/signup_university/presentation/views/detailed_university_signup_view.dart';
@@ -7,14 +10,97 @@ import '../../../../ui_helper/ui_helper.dart';
 import '../../../../widgets/widgets.dart';
 import '../../../login/presentation/views/login_page_first_view.dart';
 import '../../../detailed_signup_student/presentation/views/signup_as_anyone_view.dart';
+import '../../../signup_student/presentation/bloc/verify_otp_bloc/verify_otp_event.dart';
+import '../blocs/university_signup_bloc.dart';
 
-class VerifyUniversityEmail extends StatelessWidget {
+class VerifyUniversityEmail extends StatefulWidget {
   final String email;
-  VerifyUniversityEmail({super.key, required this.email});
-  TextEditingController enterOTP = TextEditingController();
+  const VerifyUniversityEmail({super.key, required this.email});
+
+  @override
+  State<VerifyUniversityEmail> createState() => _VerifyUniversityEmailState();
+}
+
+class _VerifyUniversityEmailState extends State<VerifyUniversityEmail> {
+  final TextEditingController _pinController = TextEditingController();
+  final FocusNode _pinFocusNode = FocusNode();
+  Timer? _timer;
+  int _start = 15;
+  bool _canResend = false;
+
+  @override
+  void initState() {
+    super.initState();
+    startTimer();
+  }
+
+  void startTimer() {
+    setState(() {
+      _canResend = false;
+      _start = 15;
+    });
+
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_start == 0) {
+        setState(() {
+          _canResend = true;
+        });
+        timer.cancel();
+      } else {
+        setState(() {
+          _start--;
+        });
+      }
+    });
+  }
+
+
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _pinController.dispose();
+    _pinFocusNode.dispose();
+    super.dispose();
+  }
+
+  // void resendOtp() {
+  //   Map<String, dynamic> emailMap = {'email': widget.email};
+  //   context.read<UniversitySignupBloc>().add(RemoteSignupSendOtpUniversity(emailMap));
+  //   showSnackbar('OTP resent to your email.', context);
+  //   startTimer();
+  // }
+
 
   @override
   Widget build(BuildContext context) {
+    // Pin theme configuration
+    final defaultPinTheme = PinTheme(
+      width: 56,
+      height: 56,
+      textStyle: const TextStyle(
+        fontSize: 20,
+        color: Color.fromRGBO(30, 60, 87, 1),
+        fontWeight: FontWeight.w600,
+      ),
+      decoration: BoxDecoration(
+        border: Border.all(color: const Color.fromRGBO(234, 239, 243, 1)),
+        borderRadius: BorderRadius.circular(8),
+      ),
+    );
+
+    final focusedPinTheme = defaultPinTheme.copyDecorationWith(
+      border: Border.all(color: const Color.fromRGBO(114, 178, 238, 1)),
+      borderRadius: BorderRadius.circular(8),
+    );
+
+    final submittedPinTheme = defaultPinTheme.copyWith(
+      decoration: defaultPinTheme.decoration?.copyWith(
+        color: const Color.fromRGBO(234, 239, 243, 1),
+      ),
+    );
+
     return Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
@@ -43,7 +129,7 @@ class VerifyUniversityEmail extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
             child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               mSpacer(mHeight: 20.0),
               Text(
                 "Verify your email",
@@ -51,7 +137,7 @@ class VerifyUniversityEmail extends StatelessWidget {
               ),
               mSpacer(),
               Text(
-                "One Time Password (OTP) has been sent on ${email}",
+                "One Time Password (OTP) has been sent on ${widget.email}",
                 style: mTextStyle12(),
               ),
               mSpacer(mHeight: 26.0),
@@ -62,12 +148,26 @@ class VerifyUniversityEmail extends StatelessWidget {
               const SizedBox(
                 height: 2,
               ),
-              SizedBox(
-                width: double.infinity,
-                child: CustomTextField(
-                  controller: enterOTP,
-                  hintText: "Enter OTP",
-                  fillColor: Colors.white,
+              // Replaced CustomTextField with Pinput
+              Center(
+                child: Pinput(
+                  length: 4,
+                  controller: _pinController,
+                  focusNode: _pinFocusNode,
+                  defaultPinTheme: defaultPinTheme,
+                  focusedPinTheme: focusedPinTheme,
+                  submittedPinTheme: submittedPinTheme,
+                  showCursor: true,
+                  onCompleted: (pin) {
+                    // Auto-submit when OTP is complete
+                    Map<String, dynamic> emailOtpMap = {
+                      "email": widget.email,
+                      "otp": pin
+                    };
+                    context
+                        .read<VerifyOtpBloc>()
+                        .add(LoadVerifyOtp(emailOtpMap));
+                  },
                 ),
               ),
               mSpacer(),
@@ -82,44 +182,25 @@ class VerifyUniversityEmail extends StatelessWidget {
                         MaterialPageRoute(
                           builder: (context) => SignupAsAnyOne(
                             // basicUserInfoResponse: data,
-                            email: email,
+                            email: widget.email,
                           ),
                         ),
                       );
                     } else {
                       showSnackbar("otp could not be verified.", context);
                     }
-                    // Navigator.push(
-                    //   context,
-                    //   MaterialPageRoute(
-                    //     builder: (context) => SignupAsAnyOne(
-                    //       basicUserInfoResponse: data,
-                    //     ),
-                    //   ),
-                    // );
                   }
                 },
                 child: commonRedContainer(
                   text: "Verify Email",
                   onTap: () {
-                    // final emailMap = {'email': 'johndoe@example.com'};
                     Map<String, dynamic> emailOtpMap = {
-                      "email": email,
-                      "otp": enterOTP.text.trim()
+                      "email": widget.email,
+                      "otp": _pinController.text
                     };
-                    // context
-                    //     .read<VerifyOtpBloc>()
-                    //     .add(LoadVerifyOtp(emailOtpMap));
-
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => DetailedUniversitySignupView(
-                          // email: email,
-                          email: "mmudgal67@gmail.com",
-                        ),
-                      ),
-                    );
+                    context
+                        .read<VerifyOtpBloc>()
+                        .add(LoadVerifyOtp(emailOtpMap));
                   },
                 ),
               ),

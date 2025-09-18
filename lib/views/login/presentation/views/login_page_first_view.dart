@@ -42,12 +42,13 @@ class _SignInPage_1State extends State<LogInPage1> {
 
   Future<void> sendOtpEmail(String email) async {
     final response = await http.post(
-      Uri.parse('https://leafyscape.com/api/otp/verify-otp'),
+      Uri.parse('https://leafyscape.com/api/otp/send-otp'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'email': email}),
     );
 
     if (response.statusCode != 200) {
+      developer.log('OTP API Response: ${response.body}');
       throw Exception('Failed to send OTP');
     }
   }
@@ -218,6 +219,7 @@ class _SignInPage_1State extends State<LogInPage1> {
                       // ),
                       BlocListener<RemoteLoginBloc, RemoteLoginState>(
                         listener: (context, state) async {
+
                           if (state is RemoteLoginError) {
                             showSnackbar('There was an error logging in.', context);
                           } else if (state is RemoteLoginLoaded) {
@@ -244,9 +246,9 @@ class _SignInPage_1State extends State<LogInPage1> {
 
                               // Call API to send OTP
                               try {
-                                await sendOtpEmail(email); // <-- Your existing or new function
+                                await sendOtpEmail(email);
 
-                                // Navigate to role-specific verify email screen
+
                                 if (role == USERTYPE.STUDENT.name) {
                                   Navigator.push(
                                     context,
@@ -300,7 +302,7 @@ class _SignInPage_1State extends State<LogInPage1> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => CompanyProfileScreen(), // <-- Create this
+                                    builder: (context) => CompanyProfileScreen(),
                                   ),
                                 );
                               } else if (user.user_role == USERTYPE.UNIVERSITY.name) {
