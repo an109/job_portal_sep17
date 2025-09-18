@@ -46,7 +46,8 @@ class _UserSkillsApprovalScreenState extends State<UserSkillsApprovalScreen> {
 
   final _formKey = GlobalKey<FormState>();
   UniqueKey _autoCompleteKey = UniqueKey();
-  int? authorityId; // This will hold the selected authority ID
+  // int? authorityId; // This will hold the selected authority ID
+  Map<String, int> authorityIdPerDomain = {};
   List<DomainEntity> allDomains = [];
   List<String> selectedDomains = [];
 
@@ -186,7 +187,7 @@ class _UserSkillsApprovalScreenState extends State<UserSkillsApprovalScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    height: 42,
+                    //height: 42,
                     width: double.infinity,
                     child: Text(
                       "Your Skills",
@@ -229,13 +230,13 @@ class _UserSkillsApprovalScreenState extends State<UserSkillsApprovalScreen> {
                             context.read<SkillBloc>().add(se.LoadSubSkills(value.name, value.id.toString()));
                             setState(() {
                               selectedDomains.add(value.name);
-                              _autoCompleteKey = UniqueKey();
+                             // _autoCompleteKey = UniqueKey();
                             });
                             developer.log('➕ [SkillsScreen] Added new domain: ${value.name}');
                           } else {
                             showSnackbar('Skill already selected.', context);
                             setState(() {
-                              _autoCompleteKey = UniqueKey();
+                              //_autoCompleteKey = UniqueKey();
                             });
                           }
                         },
@@ -350,7 +351,7 @@ class _UserSkillsApprovalScreenState extends State<UserSkillsApprovalScreen> {
                                     displayStringForOption: (college) => college.name,
                                     onSelected: (college) {
                                       setState(() {
-                                        authorityId = college.id; // Store the ID here
+                                        authorityIdPerDomain[domain] = college.id; // Store the ID here
                                         // selectedCourseId = course.id;
                                         // selectedSpecialization = null;
                                         // selectedSpecializationId = null;
@@ -511,9 +512,11 @@ class _UserSkillsApprovalScreenState extends State<UserSkillsApprovalScreen> {
     List<Map<String, dynamic>> skillList = [];
 
     for (int i = 0; i < selectedDomains.length; i++) {
+      developer.log('domains: ${selectedDomains}');
       final domain = selectedDomains[i];
       // Use the stored authorityId, which is an int
-      final int? selectedAuthorityId = authorityId;
+      // final int? selectedAuthorityId = authorityId;
+      final int? selectedAuthorityId = authorityIdPerDomain[domain];
       final subSkills = selectedSubSkillsPerDomain[domain] ?? [];
 
       if (selectedAuthorityId != null) { // Only add skills if an authority is selected

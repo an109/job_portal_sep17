@@ -140,7 +140,53 @@ class ForgotPasswordRepositoryImpl implements ForgotPasswordRepository {
     }
   }
 
-  // @override
+  @override
+  Future<DataState<String>> resetPasswordWithOTP({
+    required String email,
+    required String otp,
+    required String newPassword,
+  }) async {
+    try {
+      final response = await apiService.resetPasswordWithOTP({
+        'email': email,
+        'otp': otp,
+        'newPassword': newPassword,
+      });
+
+      final data = response.response.data as Map<String, dynamic>?;
+      developer.log('ResetPasswordWithOTP response: $data');
+
+      if (response.response.statusCode == 200) {
+        // Use API message or fallback
+        final message = data?['message'] as String? ?? 'Password reset successful';
+        return DataSuccess(message);
+      } else {
+        return DataFailed(
+          DioException(
+            requestOptions: response.response.requestOptions,
+            response: response.response,
+            type: DioExceptionType.badResponse,
+            error: data?['message'] ?? 'Password reset failed',
+          ),
+        );
+      }
+    } on DioException catch (e) {
+      developer.log('ResetPasswordWithOTP error: $e');
+      return DataFailed(e);
+    } catch (e, st) {
+      developer.log('Unexpected error in resetPasswordWithOTP: $e\n$st');
+      return DataFailed(
+        DioException(
+          requestOptions: RequestOptions(path: '/reset-password'),
+          error: e.toString(),
+          type: DioExceptionType.unknown,
+        ),
+      );
+    }
+  }
+
+
+// @override
   // Future<DataState<String>> verifyOtpAndResetPassword({
   //   required String email,
   //   required String otp,

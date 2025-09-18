@@ -242,7 +242,7 @@ class _UserProfileScreen1State extends State<UserProfileScreen1> {
                             const Spacer(),
                             Padding(
                               padding:
-                                  const EdgeInsets.symmetric(horizontal: 16.0),
+                                  const EdgeInsets.symmetric(horizontal: 8.0),
                               child: Container(
                                 decoration: BoxDecoration(
                                   border: Border.all(color: Colors.white),
@@ -251,7 +251,7 @@ class _UserProfileScreen1State extends State<UserProfileScreen1> {
                                 ),
                                 child: Padding(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 8.0),
+                                      horizontal: 4.0),
                                   child: InkWell(
                                     onTap: () {
                                       Navigator.push(

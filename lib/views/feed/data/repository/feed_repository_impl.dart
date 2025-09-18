@@ -1,4 +1,4 @@
-import 'dart:developer' as develop show log;
+import 'dart:developer' as developer;
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:job_portal/utils/resourses/data_state.dart';
@@ -20,9 +20,10 @@ class FeedRepositoryImpl extends FeedRepository {
       final response = await _apiService.getFeedPosts(page, limit);
 
       if (response.response.statusCode == HttpStatus.ok) {
+        developer.log('success: ${response.data}');
         return DataSuccess(response.data);
       } else {
-        develop.log('.Ending up in repo error : ${response.response}');
+        developer.log('.Ending up in repo error : ${response.response}');
         return DataFailed(
           DioException(
               error: response.response.statusMessage,
@@ -32,7 +33,7 @@ class FeedRepositoryImpl extends FeedRepository {
         );
       }
     } on DioException catch (e) {
-      develop.log('Ending up in repo error : $e');
+      developer.log('Ending up in repo error : $e');
       return DataFailed(e);
     }
   }
@@ -46,7 +47,7 @@ class FeedRepositoryImpl extends FeedRepository {
       if (response.response.statusCode == HttpStatus.ok) {
         return DataSuccess(response.data);
       } else {
-        develop.log('.Ending up in repo error : ${response.response}');
+        developer.log('.Ending up in repo error : ${response.response}');
         return DataFailed(
           DioException(
               error: response.response.statusMessage,
@@ -56,7 +57,7 @@ class FeedRepositoryImpl extends FeedRepository {
         );
       }
     } on DioException catch (e) {
-      develop.log('Ending up in repo error : $e');
+      developer.log('Ending up in repo error : $e');
       return DataFailed(e);
     }
   }
@@ -70,7 +71,7 @@ class FeedRepositoryImpl extends FeedRepository {
       if (response.response.statusCode == HttpStatus.ok) {
         return DataSuccess(response.data);
       } else {
-        develop.log('.Ending up in repo error : ${response.response}');
+        developer.log('.Ending up in repo error : ${response.response}');
         return DataFailed(
           DioException(
               error: response.response.statusMessage,
@@ -80,7 +81,7 @@ class FeedRepositoryImpl extends FeedRepository {
         );
       }
     } on DioException catch (e) {
-      develop.log('Ending up in repo error : $e');
+      developer.log('Ending up in repo error : $e');
       return DataFailed(e);
     }
   }
@@ -98,7 +99,7 @@ class FeedRepositoryImpl extends FeedRepository {
           response.response.statusCode == HttpStatus.created) {
         return DataSuccess(response.data);
       } else {
-        develop.log('.Ending up in repo error : ${response.response}');
+        developer.log('.Ending up in repo error : ${response.response}');
         return DataFailed(
           DioException(
               error: response.response.statusMessage,
@@ -108,7 +109,7 @@ class FeedRepositoryImpl extends FeedRepository {
         );
       }
     } on DioException catch (e) {
-      develop.log('Ending up in repo error : $e');
+      developer.log('Ending up in repo error : $e');
       return DataFailed(e);
     }
   }

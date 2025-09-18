@@ -44,6 +44,7 @@ class Urls {
   static const raiseTicket = "tickets/raise";
   static const forgotPassword = "users/forgotPassword";
   static const changePassword = "users/changePassword";
+  static const resetPasswordWithOTP = "users/resetPasswordWithOtp";
 
   // Job Posts
   static const String getJobPostsList = "jobpost/list";
@@ -92,3 +93,4 @@ class Urls {
   }
 
 }
+

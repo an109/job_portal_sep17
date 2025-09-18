@@ -18,18 +18,21 @@ class JobModel extends AllJobsEntity {
   JobModel({
     required super.job_id,
     required super.company_name,
+    required super.company_location,
     super.logo_url,
     required super.jobRole,
     required super.skills,
     required super.matchPercentage,
     required super.experience,
-    required super.salary, required super.cityChoice,
+    required super.salary,
+    required super.cityChoice,
   });
 
   factory JobModel.fromJson(Map<String, dynamic> json) {
     return JobModel(
       job_id: json['job_id'] ?? 0,
       company_name: json['company_name'] ?? '',
+      company_location: json['company_location'] ?? '',
       logo_url: json['logo_url'],
       jobRole: json['jobRole'] ?? '',
       skills: (json['skills'] as List<dynamic>? ?? [])
@@ -54,7 +57,7 @@ class SkillModel extends SkillEntity {
   factory SkillModel.fromJson(Map<String, dynamic> json) {
     return SkillModel(
       skillId: json['skill_id'] ?? 0,
-      skillName: json['skill_name'] ?? '',
+      skillName: json['skill_name'] ?? 'Flutter',
     );
   }
 }

@@ -197,6 +197,10 @@ Future<void> initializeDependencies() async {
     dio.options.headers['Authorization'] = 'Bearer YOUR_JWT_TOKEN';
     return UserSkillApprovalApiService(dio);
   });
+  sl.registerLazySingleton<ResetPasswordWithOtpUseCase>(
+        () => ResetPasswordWithOtpUseCase(sl<ForgotPasswordRepository>()),
+  );
+
   // sl.registerLazySingleton<UserSkillApprovalApiService>(() {
   //   final dio = sl<Dio>();
   //   dio.options.headers['Authorization'] = 'Bearer YOUR_JWT_TOKEN';
@@ -279,6 +283,7 @@ Future<void> initializeDependencies() async {
   sl.registerFactory<ForgotPasswordBloc>(() => ForgotPasswordBloc(
     sendOtpToEmailUsecase: sl(),
     verifyOtpAndResetPasswordUsecase: sl(),
+    resetPasswordWithOtpUseCase: sl(),
   ));
   sl.registerFactory<RecruiterPipelineCandidatesBloc>(() => RecruiterPipelineCandidatesBloc(sl()));
   sl.registerFactory<RecruiterUpcomingInterviewsBloc>(() => RecruiterUpcomingInterviewsBloc(sl()));

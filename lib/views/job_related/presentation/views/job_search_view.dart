@@ -30,8 +30,9 @@ class JobSearchScreen extends StatefulWidget {
 
 class _JobSearchScreenState extends State<JobSearchScreen> {
   TextEditingController jSearchController = TextEditingController();
-
   List<AllJobsEntity> allJobsList = [];
+  List<AllJobsEntity> filteredJobsList = [];
+  bool isLoading = false;
 
 
   String formatSalaryRangeToINR(String salaryRange) {
@@ -86,6 +87,21 @@ class _JobSearchScreenState extends State<JobSearchScreen> {
     bloc.add(const LoadJobs());
   }
 
+  void _filterJobs(String query) {
+    if (query.isEmpty) {
+      setState(() {
+        filteredJobsList = allJobsList;
+      });
+    } else {
+      setState(() {
+        filteredJobsList = allJobsList
+            .where((job) =>
+            job.jobRole.toLowerCase().contains(query.toLowerCase()))
+            .toList();
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -135,13 +151,22 @@ class _JobSearchScreenState extends State<JobSearchScreen> {
                   if (state is JobsLoaded) {
                     final data = state.allJobsEntity;
                     developer.log("All jobs list length : ${data.length}");
+                    developer.log("All jobs list : ${data}");
                     setState(() {
                       allJobsList = data;
+                      filteredJobsList = data;
+                      isLoading = false;
                     });
                   } else if (state is JobsError) {
                     developer.log("Error loading jobs list.");
+                    setState(() {
+                      isLoading = false;
+                    });
                   } else if (state is JobsLoading) {
                     developer.log(" loading jobs list.");
+                    setState(() {
+                      isLoading = true;
+                    });
                   }
                 },
                 child: const SizedBox(),
@@ -169,8 +194,7 @@ class _JobSearchScreenState extends State<JobSearchScreen> {
                             flex: 6,
                             child: SearchTextField(
                               onTextChanged: (value) {
-                                // Call your API here
-                                print("API call for: $value");
+                                _filterJobs(value);
                               },
                             ),
                           ),
@@ -198,14 +222,17 @@ class _JobSearchScreenState extends State<JobSearchScreen> {
                     const SizedBox(
                       height: 30,
                     ),
+                    isLoading
+                    ? Center(child: CircularProgressIndicator(),)
+                        :
                     SizedBox(
                       child: ListView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
-                        itemCount: allJobsList.length,
+                        itemCount: filteredJobsList.length,
                         itemBuilder: (context, index) {
                           // final job = mList[index];
-                          final job = allJobsList[index];
+                          final job = filteredJobsList[index];
 
                           return JobCard(
                             onTap: () {
@@ -230,7 +257,7 @@ class _JobSearchScreenState extends State<JobSearchScreen> {
                             jobTitle: job.jobRole,
                             // jobTitle: 'Job Profile',
                             company: job.company_name,
-                            location: job.cityChoice ?? 'City Choice',
+                            location: job.company_location,
                             // location: 'City Choice',
                             experience: job.experience,
                             salary: formatSalaryRangeToINR(job.salary),

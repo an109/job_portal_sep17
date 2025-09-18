@@ -7,4 +7,10 @@ abstract class ForgotPasswordRepository {
     required String otp,
     required String newPassword,
   });
+  Future<DataState<String>> resetPasswordWithOTP({
+    required String email,
+    required String otp,
+    required String newPassword,
+  });
+
 }

@@ -9,13 +9,16 @@ import '../../domain/usecase/forgot_password_usecases.dart';
 class ForgotPasswordBloc extends Bloc<ForgotPasswordEvent, ForgotPasswordState> {
   final SendOtpToEmailUsecase sendOtpToEmailUsecase;
   final VerifyOtpAndResetPasswordUsecase verifyOtpAndResetPasswordUsecase;
+  final ResetPasswordWithOtpUseCase resetPasswordWithOtpUseCase;
 
   ForgotPasswordBloc({
     required this.sendOtpToEmailUsecase,
     required this.verifyOtpAndResetPasswordUsecase,
+    required this.resetPasswordWithOtpUseCase,
   }) : super(ForgotPasswordInitial()) {
     on<SendForgotPasswordEmail>(_onSendOtp);
     on<ResetPasswordRequestEvent>(_onResetPassword);
+    on<ResetPasswordWithOTPRequestEvent>(_onResetPasswordWithOTP);
   }
 
   Future<void> _onSendOtp(
@@ -38,11 +41,14 @@ class ForgotPasswordBloc extends Bloc<ForgotPasswordEvent, ForgotPasswordState> 
       Emitter<ForgotPasswordState> emit,
       ) async {
     emit(ResetPasswordLoading());
+    developer.log('email: ${event.email} \n otp: ${event.otp} \n pass: ${event.newPassword}');
+
     final result = await verifyOtpAndResetPasswordUsecase.call(
       email: event.email,
       otp: event.otp,
       newPassword: event.newPassword,
     );
+    developer.log("result: $result");
 
     if (result is DataSuccess<String>) {
       // ✅ Safe: Only emit if data is not null
@@ -53,6 +59,32 @@ class ForgotPasswordBloc extends Bloc<ForgotPasswordEvent, ForgotPasswordState> 
       emit(ResetPasswordFailed(result.error.toString()));
     }
   }
+
+  Future<void> _onResetPasswordWithOTP(
+      ResetPasswordWithOTPRequestEvent event,
+      Emitter<ForgotPasswordState> emit,
+      ) async {
+    emit(ResetPasswordWithOTPLoading());
+    developer.log('email_onResetPasswordWithOTP: ${event.email} \n otp: ${event.otp} \n pass: ${event.newPassword}');
+
+    final result = await resetPasswordWithOtpUseCase.call(
+      email: event.email,
+      otp: event.otp,
+      newPassword: event.newPassword,
+    );
+    developer.log("result: $result");
+
+    if (result is DataSuccess<String>) {
+      // ✅ Safe: Only emit if data is not null
+      final message = result.data ?? 'Password changed successfully';
+      developer.log('✅ Emitting ResetPasswordSuccess: $message');
+      emit(ResetPasswordWithOTPSuccess(result.data ?? 'Password changed'));
+    } else if (result is DataFailed) {
+      emit(ResetPasswordWithOTPFailed(result.error.toString()));
+    }
+  }
+
+
 
   // Future<void> _onResetPassword(
   //     ResetPasswordRequestEvent event,

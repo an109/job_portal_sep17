@@ -28,3 +28,21 @@ class VerifyOtpAndResetPasswordUsecase {
     );
   }
 }
+
+class ResetPasswordWithOtpUseCase {
+  final ForgotPasswordRepository repository;
+
+  ResetPasswordWithOtpUseCase(this.repository);
+
+  Future<DataState<String>> call({
+    required String email,
+    required String otp,
+    required String newPassword,
+  }) async {
+    return await repository.resetPasswordWithOTP(
+      email: email,
+      otp: otp,
+      newPassword: newPassword,
+    );
+  }
+}

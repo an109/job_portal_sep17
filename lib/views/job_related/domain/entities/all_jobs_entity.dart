@@ -1,6 +1,7 @@
 class AllJobsEntity {
   final int job_id;
   final String company_name;
+  final String company_location;
   final String? logo_url;
   final String jobRole;
   final List<SkillEntity> skills;
@@ -12,6 +13,7 @@ class AllJobsEntity {
   const AllJobsEntity({
     required this.job_id,
     required this.company_name,
+    required this.company_location,
     this.logo_url,
     required this.jobRole,
     required this.skills,

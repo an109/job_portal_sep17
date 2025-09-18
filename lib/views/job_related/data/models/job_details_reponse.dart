@@ -11,8 +11,9 @@ class JobDetailsResponseModel extends JobDetailsEntity {
                 job_time: json['job_time'] ?? '',
                 days_in_office: json['days_in_office'],
                 cityChoice: (json['eligible_cities'] as List<dynamic>?)
-                    ?.map((e) => e.toString())
+                    ?.map((e) => e['name'].toString())
                     .toList(),
+
                 skillsRequired: List<String>.from(json['skillsRequired'] ?? []),
                 skill_required_note: json['skill_required_note'] ?? '',
                 candidate_preferences: json['candidate_preferences'] ?? '',

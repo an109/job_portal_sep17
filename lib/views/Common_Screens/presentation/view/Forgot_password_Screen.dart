@@ -55,9 +55,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       ),
       body: BlocConsumer<ForgotPasswordBloc, ForgotPasswordState>(
         listener: (context, state) {
-          if (state is ResetPasswordSuccess) {
+          if (state is ResetPasswordWithOTPSuccess) {
             showSnackbar(state.message, context);
-
+            developer.log('success: ${state.message}');
             // ✅ Critical: Delay navigation and check if context is still valid
             Future.delayed(Duration.zero, () {
               if (!context.mounted) return; // ✅ Prevents error if screen was popped
@@ -68,10 +68,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               );
             });
           } else if (state is ForgotPasswordOtpSent) {
+            developer.log('ForgotPasswordOtpSent: ${state.message}');
             showSnackbar(state.message, context);
           } else if (state is ForgotPasswordOtpFailed) {
+            developer.log('error: ${state.error}');
             showSnackbar(state.error, context);
-          } else if (state is ResetPasswordFailed) {
+          } else if (state is ResetPasswordWithOTPFailed) {
+            developer.log('ResetPasswordWithOTPFailed: ${state.error}');
             showSnackbar(state.error, context);
           }
         },
@@ -121,8 +124,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       );
                     },
                   ),
-                  const SizedBox(height: 12),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 32),
                   Text("Enter OTP to verify Email or Phone number", style: mTextStyle12()),
                   CustomTextField(
                     controller: otpController,
@@ -133,6 +135,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   CustomTextField(
                     controller: passwordController,
                     hintText: "******",
+                    obscureText: true,
                     suffixIcon: Icons.visibility_off_outlined,
                   ),
                   const SizedBox(height: 20),
@@ -140,6 +143,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   CustomTextField(
                     controller: NewPassWordController,
                     hintText: "******",
+                    obscureText: true,
                     suffixIcon: Icons.visibility_off_outlined,
                   ),
                   const SizedBox(height: 25),
@@ -147,7 +151,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     child: SizedBox(
                       width: 150,
                       child: nextButton(
-                        title: state is ResetPasswordLoading ? "Saving..." : "Save Changes",
+                        title: state is ResetPasswordWithOTPLoading ? "Saving..." : "Save Changes",
                         onTap: () {
                           final email = email_Controller.text.trim();
                           final otp = otpController.text.trim();
@@ -162,9 +166,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                             showSnackbar("Passwords do not match", context);
                             return;
                           }
-
+                          developer.log('email: $email \n otp: $otp \n pass: $newPassword');
                           context.read<ForgotPasswordBloc>().add(
-                            ResetPasswordRequestEvent(
+                            ResetPasswordWithOTPRequestEvent(
                               email: email,
                               otp: otp,
                               newPassword: newPassword,

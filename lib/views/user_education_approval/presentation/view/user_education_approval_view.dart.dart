@@ -270,7 +270,7 @@ class _UserEducationApprovalScreenState
                       if (state is UserEducationApprovalUpdated) {
                         developer.log("UserEducationApprovalUpdated received");
                         showSnackbar("Education updated successfully", context);
-                        Navigator.pop(context);
+                        Navigator.pop(context, true);
                       } else if (state is UserEducationApprovalError) {
                         developer.log(
                             "UserEducationApprovalError: ${state.message}");
@@ -306,7 +306,7 @@ class _UserEducationApprovalScreenState
                                 e['education_certificate'] as String,
                               )).toList(),
                             );
-                            Navigator.pop(context);
+                            Navigator.pop(context, true);
                             final user_id = sl<PreferencesManager>().getUserId();
                             developer.log(
                                 "Dispatching UpdateUserEducation for user_id=$user_id");

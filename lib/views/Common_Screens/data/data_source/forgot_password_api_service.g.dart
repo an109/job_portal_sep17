@@ -30,7 +30,7 @@ class _ForgotPasswordApiService implements ForgotPasswordApiService {
       Options(method: 'POST', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            'otp/send-otp',
+            'users/forgotPassword',
             queryParameters: queryParameters,
             data: _data,
           )
@@ -110,5 +110,29 @@ class _ForgotPasswordApiService implements ForgotPasswordApiService {
     }
 
     return Uri.parse(dioBaseUrl).resolveUri(url).toString();
+  }
+
+  @override
+  Future<HttpResponse<void>> resetPasswordWithOTP(Map<String, dynamic> body) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{
+
+    };
+    final _data = <String, dynamic>{};
+    _data.addAll(body);
+    final _options = _setStreamType<HttpResponse<void>>(
+      Options(method: 'POST', headers: _headers, extra: _extra)
+          .compose(
+        _dio.options,
+        Urls.resetPasswordWithOTP,
+        queryParameters: queryParameters,
+        data: _data,
+      )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<void>(_options);
+    final httpResponse = HttpResponse(null, _result);
+    return httpResponse;
   }
 }

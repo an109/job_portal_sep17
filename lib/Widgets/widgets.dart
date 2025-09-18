@@ -51,7 +51,7 @@ PreferredSizeWidget buildCustomAppBar({required String titleText}) {
 /// HEADING PART WIDGET
 Widget signInHeader({required VoidCallback onTap}) {
   return Container(
-    height: 180,
+    // height: 180,
     width: double.infinity,
     decoration: BoxDecoration(color: TColors.primary),
     child: Padding(
