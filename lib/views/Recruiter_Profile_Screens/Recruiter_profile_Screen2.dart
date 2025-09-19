@@ -463,6 +463,8 @@ class _RecruiterProfileScreen2State extends State<RecruiterProfileScreen2> {
             _profilePicPath = uploadedUrl;
           });
 
+          sl<PreferencesManager>().setString(PREF_PROFILE_PIC, uploadedUrl);
+
           logUpdate("Image uploaded successfully: $uploadedUrl");
         }
 

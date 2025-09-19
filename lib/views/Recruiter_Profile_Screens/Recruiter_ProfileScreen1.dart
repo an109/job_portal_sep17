@@ -72,7 +72,7 @@ class _RecruiterProfilescreen1State extends State<RecruiterProfilescreen1> {
             children: [
               /// Profile Container
               Container(
-                height: 90,
+                height: 98,
                 width: double.infinity,
                 decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(5),
@@ -81,34 +81,39 @@ class _RecruiterProfilescreen1State extends State<RecruiterProfilescreen1> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 18.0),
                     child: Container(
-                      height: 50,
-                      width: 50,
+                      height: 58,
+                      width: 58,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(25),
                       ),
-                      child: SvgPicture.asset("assets/Icons/profile_icon.svg"),
+                      child: _getProfileImage(prefs),
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          prefs.getString(PreferencesManager.USER_NAME) ?? 'Recruiter Name',
-                          style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white),
-                        ),
-                        Text(
-                          prefs.getString(PreferencesManager.USER_EMAIL) ?? 'recruiter@email.com',
-                          style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w400,
-                              color: Colors.white),
-                        )
-                      ],
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width - 150, // Adjust as needed
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 28.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            prefs.getString(PreferencesManager.USER_NAME) ?? 'Recruiter Name',
+                            style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            prefs.getString(PreferencesManager.USER_EMAIL) ?? 'recruiter@email.com',
+                            style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w400,
+                                color: Colors.white),
+                            overflow: TextOverflow.ellipsis, // ✅ Prevent text overflow
+                          )
+                        ],
+                      ),
                     ),
                   ),
                 ]),
@@ -231,6 +236,8 @@ class _RecruiterProfilescreen1State extends State<RecruiterProfilescreen1> {
                         onTap: () {
                           final _prefs = sl<PreferencesManager>();
 
+                          _prefs.clear('recruiter_profile_pic');
+
                           _prefs.clear(PreferencesManager.USER_TYPE);
                           _prefs.clear(PreferencesManager.TOKEN);
                           Navigator.pushAndRemoveUntil(
@@ -347,4 +354,22 @@ Widget UserProfileEnteries(
       ],
     ),
   );
+}
+Widget _getProfileImage(PreferencesManager prefs) {
+  final profilePicPath = prefs.getString('recruiter_profile_pic') ?? '';
+
+  if (profilePicPath.isNotEmpty) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(25),
+      child: Image.network(
+        profilePicPath,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return SvgPicture.asset("assets/Icons/profile_icon.svg");
+        },
+      ),
+    );
+  } else {
+    return SvgPicture.asset("assets/Icons/profile_icon.svg");
+  }
 }

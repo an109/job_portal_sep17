@@ -9,7 +9,8 @@ abstract class UploadFileEvent extends Equatable {
 
 class LoadUploadFile extends UploadFileEvent {
   final FormData data;
-  const LoadUploadFile(this.data);
+  final String uploadType;
+  const LoadUploadFile(this.data, {this.uploadType = 'unknown'});
 
   @override
   List<Object?> get props => [data];

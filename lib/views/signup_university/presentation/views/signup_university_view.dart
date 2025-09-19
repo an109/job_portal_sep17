@@ -9,6 +9,8 @@ import 'package:job_portal/views/signup_student/presentation/views/signup_studen
 import 'package:job_portal/views/signup_university/presentation/views/verify_university_email.dart';
 import 'package:job_portal/widgets/widgets.dart';
 
+import '../../../user_profile/presentation/views/user_terms_and_conditions_view.dart';
+
 class SignupUniversityView extends StatelessWidget {
   SignupUniversityView({super.key});
 
@@ -19,6 +21,7 @@ class SignupUniversityView extends StatelessWidget {
   final phoneController = TextEditingController();
 
   bool isLoading = false;
+  bool isChecked = false;
 
   @override
   Widget build(BuildContext context) {
@@ -219,16 +222,44 @@ class SignupUniversityView extends StatelessWidget {
                 children: [
                   Text("By signing up, you agree to our",
                       style: mTextStyle12()),
+                  // InkWell(
+                  //   onTap: () {},
+                  //   child: Text(
+                  //     " Terms and Conditions",
+                  //     style: mTextStyle14(
+                  //       mFontWeight: FontWeight.w700,
+                  //       mColor: Color.fromARGB(255, 17, 24, 39),
+                  //     ),
+                  //   ),
+                  // )
                   InkWell(
-                    onTap: () {},
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) {
+                          return Dialog(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            insetPadding: const EdgeInsets.all(16),
+                            child: SizedBox(
+                              height: MediaQuery.of(context).size.height * 0.7,
+                              width: MediaQuery.of(context).size.width * 0.9,
+                              child: UserTermsAndConditionsScreen(), // reuse your existing screen
+                            ),
+                          );
+                        },
+                      );
+                    },
                     child: Text(
                       " Terms and Conditions",
                       style: mTextStyle14(
                         mFontWeight: FontWeight.w700,
-                        mColor: Color.fromARGB(255, 17, 24, 39),
+                        mColor: const Color.fromARGB(255, 17, 24, 39),
                       ),
                     ),
                   )
+
                 ],
               ),
               mSpacer(mHeight: 20.0),

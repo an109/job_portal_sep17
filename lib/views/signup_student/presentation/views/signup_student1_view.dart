@@ -31,6 +31,7 @@ class _SignUpStudent1State extends State<SignUpStudent1> {
   final phoneController = TextEditingController();
 
   bool isLoading = false;
+  bool isChecked = false;
 
   @override
   Widget build(BuildContext context) {
@@ -39,20 +40,6 @@ class _SignUpStudent1State extends State<SignUpStudent1> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         title: const Text(""),
-        // actions: [
-        //   IconButton(
-        //     onPressed: () {
-        //       Navigator.of(context).push(
-        //         MaterialPageRoute(
-        //           builder: (context) => SignUpStudent_2(
-        //             Email: emailController.text.trim(),
-        //           ),
-        //         ),
-        //       );
-        //     },
-        //     icon: const Icon(Icons.double_arrow),
-        //   )
-        // ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -114,14 +101,6 @@ class _SignUpStudent1State extends State<SignUpStudent1> {
                   hintText: "∗∗∗∗∗∗∗∗∗∗",
                   isPasswordField: true,
                   suffixIcon: Icons.visibility_off_outlined,
-                  // fillColor: Color(0xffFFF7FB),
-                  // validator: (value) {
-                  //   if (value == null || value.isEmpty)
-                  //     return 'Password required';
-                  //   if (value.length < 6)
-                  //     return 'Password must be at least 6 characters';
-                  //   return null;
-                  // },
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Password is required';
@@ -140,70 +119,66 @@ class _SignUpStudent1State extends State<SignUpStudent1> {
                   },
                 ),
                 mSpacer(),
-                // commonRedContainer(
-                //   text: "Register",
-                //   onTap: () {
-                //     if (_formKey.currentState!.validate()) {
-                //       final body = {
-                //         "first_name": firstNameController.text.trim(),
-                //         "last_name": surnameController.text.trim(),
-                //         "email": emailController.text.trim(),
-                //         "phone": phoneController.text.trim(),
-                //         "password": passwordController.text,
-                //         "user_role": widget.user_type,
-                //       };
-                //       // context.read<RegisterUserBloc>().add(
-                //       //   RegisteredUserEvent(bodyParams: body),
-                //       // );
-                //       // context.read<SendOTPBloc>().add(
-                //       //   TriggerSendOTPEvent(email: emailController.text.trim()),
-                //       // );
-                //       developer.log('Registeration map print : $body');
-                //       context
-                //           .read<RemoteSignupBloc>()
-                //           .add(RemoteSignupData(body));
-                //       BlocListener<RemoteSignupBloc, RemoteSignupState>(
-                //           listener: (context, state) {
-                //         if (state is RemoteSignupError) {
-                //           showSnackbar(
-                //               'Some error occured while signing up.', context);
-                //         } else if (state is RemoteSignupDone) {
-                //           final data = state.signUpUserResponse;
-                //           developer.log(data.message);
-                //           if (data.message == 'Email already exists') {
-                //           } else {
-                //             Navigator.of(context).push(MaterialPageRoute(
-                //                 builder: (context) => SignUpStudent_2(
-                //                     Email: emailController.text.trim())));
-                //           }
-                //         }
-                //       });
-                //       showSnackbar('Email already exists', context);
-                //       // Navigator.of(context).push(MaterialPageRoute(
-                //       //     builder: (context) => SignUpStudent_2(
-                //       //         Email: emailController.text.trim())));
-                //     }
-                //   },
-                // ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Text("By signing up, you agree to our",
-                        style: TextStyle(fontSize: 15)),
-                    InkWell(
-                      onTap: () {
-                        Navigator.push(context, MaterialPageRoute( builder: (context) => UserTermsAndConditionsScreen()));
+                    Checkbox(
+                      value: isChecked,
+                      onChanged: (val) {
+                        setState(() {
+                          isChecked = val ?? false;
+                        });
                       },
-                      child: Text(
-                        " Terms and Conditions",
-                        style: mTextStyle14(
-                          mFontWeight: FontWeight.w700,
-                          mColor: const Color.fromARGB(255, 17, 24, 39),
-                        ),
+                    ),
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              "By signing up, you agree to our ",
+                              style: TextStyle(fontSize: 15),
+                              overflow: TextOverflow.ellipsis, // prevents overflow
+                              maxLines: 1,
+                            ),
+                          ),
+                          InkWell(
+                            onTap: () {
+                              showDialog(
+                                context: context,
+                                builder: (context) {
+                                  return Dialog(
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    insetPadding: const EdgeInsets.all(16),
+                                    child: SizedBox(
+                                      height: MediaQuery.of(context).size.height * 0.7,
+                                      width: MediaQuery.of(context).size.width * 0.9,
+                                      child: const UserTermsAndConditionsScreen(),
+                                    ),
+                                  );
+                                },
+                              );
+                            },
+                            child: Text(
+                              "Terms and Conditions",
+                              style: mTextStyle14(
+                                mFontWeight: FontWeight.w700,
+                                mColor: const Color.fromARGB(255, 17, 24, 39),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
                       ),
-                    )
+                    ),
                   ],
                 ),
+
+
+
                 mSpacer(),
                 BlocListener<RemoteSignupBloc, RemoteSignupState>(
                   listener: (context, state) {
@@ -262,7 +237,8 @@ class _SignUpStudent1State extends State<SignUpStudent1> {
                   },
                   child: commonRedContainer(
                     text: "Register",
-                    onTap: () {
+                    onTap: isChecked
+                        ? () {
                       if (_formKey.currentState!.validate()) {
                         final body = {
                           "first_name": firstNameController.text.trim(),
@@ -272,7 +248,7 @@ class _SignUpStudent1State extends State<SignUpStudent1> {
                           "password": passwordController.text,
                           "user_role": widget.user_type,
                         };
-                        // Save data temporarily
+
                         final prefs = sl<PreferencesManager>();
                         prefs.setString('temp_first_name', firstNameController.text.trim());
                         prefs.setString('temp_last_name', surnameController.text.trim());
@@ -280,9 +256,7 @@ class _SignUpStudent1State extends State<SignUpStudent1> {
                         prefs.setString('temp_phone', phoneController.text.trim());
 
                         developer.log('Registeration map print : $body');
-                        context
-                            .read<RemoteSignupBloc>()
-                            .add(RemoteSignupData(body));
+                        context.read<RemoteSignupBloc>().add(RemoteSignupData(body));
                         Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (context) => SignUpStudent_2(
@@ -291,13 +265,8 @@ class _SignUpStudent1State extends State<SignUpStudent1> {
                           ),
                         );
                       }
-                      developer.log('Phone number : ${phoneController.text}');
-
-                      // Navigator.of(context).push(MaterialPageRoute(
-                      //     builder: (context) => SignUpStudent_2(
-                      //         Email: emailController.text.trim()))
-                      // );
-                    },
+                    }
+                        : null, // disable when not checked
                   ),
                 ),
 

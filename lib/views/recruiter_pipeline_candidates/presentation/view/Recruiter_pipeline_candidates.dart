@@ -22,11 +22,18 @@ class RecruiterPipelineCandidates extends StatefulWidget {
 
 class _RecruiterPipelineCandidatesState extends State<RecruiterPipelineCandidates> {
   final TextEditingController fdController = TextEditingController();
+  String? selectedStatus; // Tracks currently selected filter
 
   @override
   void initState() {
     super.initState();
     context.read<RecruiterPipelineCandidatesBloc>().add(FetchPipelineCandidates());
+  }
+
+  void _onFilterTap(String? status) {
+    setState(() {
+      selectedStatus = selectedStatus == status ? null : status; // Toggle off if same
+    });
   }
 
   @override
@@ -62,7 +69,12 @@ class _RecruiterPipelineCandidatesState extends State<RecruiterPipelineCandidate
             if (state is RecruiterPipelineCandidatesSuccess) {
               final candidates = state.data.pipeline;
 
-              // Count by status
+              // Filter candidates based on selected status
+              final filteredCandidates = selectedStatus == null
+                  ? candidates
+                  : candidates.where((c) => c.status == selectedStatus).toList();
+
+              // Count by status (for badges)
               final appliedCount = candidates.where((c) => c.status == "Applied").length;
               final screeningCount = candidates.where((c) => c.status == "Screening").length;
               final interviewCount = candidates.where((c) => c.status == "Interview").length;
@@ -99,58 +111,84 @@ class _RecruiterPipelineCandidatesState extends State<RecruiterPipelineCandidate
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          optionContainer(
-                            title: "Applied",
-                            nApplications: "($appliedCount)",
-                            textColor: Color(0xff6C7278),
-                            bgColor: Colors.white,
+                          InkWell(
+                            onTap: () => _onFilterTap("Applied"),
+                            child: optionContainer(
+                              title: "Applied",
+                              nApplications: "($appliedCount)",
+                              textColor: selectedStatus == "Applied" ? Colors.white : Color(0xff6C7278),
+                              bgColor: selectedStatus == "Applied" ? Colors.blue : Colors.white,
+                            ),
                           ),
-                          optionContainer(
-                            title: "Screening",
-                            nApplications: "($screeningCount)",
-                            textColor: Color(0xff6C7278),
-                            bgColor: Colors.white,
+                          InkWell(
+                            onTap: () => _onFilterTap("Screening"),
+                            child: optionContainer(
+                              title: "Screening",
+                              nApplications: "($screeningCount)",
+                              textColor: selectedStatus == "Screening" ? Colors.white : Color(0xff6C7278),
+                              bgColor: selectedStatus == "Screening" ? Colors.blue : Colors.white,
+                            ),
                           ),
-                          optionContainer(
-                            title: "Interview",
-                            nApplications: "($interviewCount)",
-                            textColor: Color(0xff6C7278),
-                            bgColor: Colors.white,
+                          InkWell(
+                            onTap: () => _onFilterTap("Interview"),
+                            child: optionContainer(
+                              title: "Interview",
+                              nApplications: "($interviewCount)",
+                              textColor: selectedStatus == "Interview" ? Colors.white : Color(0xff6C7278),
+                              bgColor: selectedStatus == "Interview" ? Colors.blue : Colors.white,
+                            ),
                           ),
-                          optionContainer(
-                            title: "Offered",
-                            nApplications: "($offeredCount)",
-                            textColor: Color(0xff6C7278),
-                            bgColor: Colors.white,
+                          InkWell(
+                            onTap: () => _onFilterTap("Offered"),
+                            child: optionContainer(
+                              title: "Offered",
+                              nApplications: "($offeredCount)",
+                              textColor: selectedStatus == "Offered" ? Colors.white : Color(0xff6C7278),
+                              bgColor: selectedStatus == "Offered" ? Colors.blue : Colors.white,
+                            ),
                           ),
                         ],
                       ),
                       SizedBox(height: 10),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                        child: optionContainer(
-                          title: "Hired",
-                          nApplications: "($hiredCount)",
-                          textColor: AppColors.blueTextColor,
-                          bgColor: Colors.blue.shade100,
+                        child: InkWell(
+                          onTap: () => _onFilterTap("Hired"),
+                          child: optionContainer(
+                            title: "Hired",
+                            nApplications: "($hiredCount)",
+                            textColor: selectedStatus == "Hired" ? Colors.white : AppColors.blueTextColor,
+                            bgColor: selectedStatus == "Hired" ? Colors.green : Colors.blue.shade100,
+                          ),
                         ),
                       ),
                       SizedBox(height: 20),
-                      ...candidates.map((candidate) {
-                        final statusText = candidate.status;
-                        final tColor = statusText == "Hired" ? Color(0xff00BC5E) : Color(0xffFFA30F);
-                        final bgColor = statusText == "Hired" ? Color(0xffE0F8EB) : Color(0xffFFF6E4);
+                      if (filteredCandidates.isEmpty)
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(20.0),
+                            child: Text(
+                              "No candidates match the selected filter.",
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          ),
+                        )
+                      else
+                        ...filteredCandidates.map((candidate) {
+                          final statusText = candidate.status;
+                          final tColor = statusText == "Hired" ? Color(0xff00BC5E) : Color(0xffFFA30F);
+                          final bgColor = statusText == "Hired" ? Color(0xffE0F8EB) : Color(0xffFFF6E4);
 
-                        return AppReceivedCard(
-                          applicantName: '${candidate.user.firstName} ${candidate.user.lastName}',
-                          postName: candidate.job.jobRole.title,
-                          total_exp: candidate.user.totalExperience == "0" ? "Fresher" : "${candidate.user.totalExperience} years",
-                          appliedDate: "3", // Replace with real logic later
-                          status: statusText,
-                          tColor: tColor,
-                          bgColor: bgColor,
-                        );
-                      }).toList(),
+                          return AppReceivedCard(
+                            applicantName: '${candidate.user.firstName} ${candidate.user.lastName}',
+                            postName: candidate.job.jobRole.title,
+                            total_exp: candidate.user.totalExperience == "0" ? "Fresher" : "${candidate.user.totalExperience} years",
+                            appliedDate: "3", // Replace with real logic later
+                            status: statusText,
+                            tColor: tColor,
+                            bgColor: bgColor,
+                          );
+                        }).toList(),
                     ],
                   ),
                 ),
@@ -165,67 +203,4 @@ class _RecruiterPipelineCandidatesState extends State<RecruiterPipelineCandidate
   }
 }
 
-/// Pipeline Candidates Container
 
-// class AppReceivedCard extends StatelessWidget {
-//   String applicantName;
-//   String postName;
-//   String total_exp;
-//   String appliedDate;
-//   String status;
-//   Color bgColor;
-//   Color tColor;
-//
-//   AppReceivedCard({
-//     required this.applicantName,
-//     required this.postName,
-//     required this.total_exp,
-//     required this.appliedDate,
-//     required this.status,
-//     required this.bgColor,
-//     required this.tColor,
-//   });
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return Container(
-//       padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10),
-//       decoration: BoxDecoration(
-//         borderRadius: BorderRadius.circular(10),
-//         border: Border.all(color: Colors.grey.shade300, width: 1.0),
-//       ),
-//       child: Column(
-//         crossAxisAlignment: CrossAxisAlignment.start,
-//         children: [
-//           Row(
-//             children: [
-//               Text(applicantName, style: mTextStyle14(mFontWeight: FontWeight.w600)),
-//               Spacer(),
-//               optionContainer(title: status, textColor: tColor, bgColor: bgColor),
-//               Icon(Icons.more_vert),
-//             ],
-//           ),
-//           SizedBox(height: 4),
-//           Text(postName, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500)),
-//           SizedBox(height: 2),
-//           Text("Total Work Experience: $total_exp", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w400)),
-//           Row(
-//             children: [
-//               Text("Applied $appliedDate days ago", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w400)),
-//               Spacer(),
-//               SizedBox(
-//                 width: 160,
-//                 child: ViewAppContainer(
-//                   bgColor: TColors.secondary,
-//                   textColor: Colors.white,
-//                   title: "View Full Application",
-//                   onTap: () {},
-//                 ),
-//               ),
-//             ],
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }

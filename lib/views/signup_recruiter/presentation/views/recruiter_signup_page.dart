@@ -178,20 +178,7 @@ class RecruiterSignupPage extends StatelessWidget {
                 ),
                 mSpacer(),
                 Text("Phone Number", style: TextStyle(fontSize: 15)),
-                // CustomTextField(
-                //   controller: phoneController,
-                //   hintText: "7895674320",
-                //   keyboardType: TextInputType.number,
-                //   suffixIcon: Icons.call,
-                //   fillColor: Color(0xffFFF7FB),
-                //   validator: (value) {
-                //     if (value == null || value.isEmpty)
-                //       return 'Phone Number required';
-                //     if (value.length < 10 || value.length > 10)
-                //       return 'Phone Number must be 10 digits';
-                //     return null;
-                //   },
-                // ),
+
                 CustomPhoneField(controller: phoneController),
                 mSpacer(),
                 BlocListener<RecruiterSignupBloc, RecruiterSignupState>(
@@ -229,12 +216,7 @@ class RecruiterSignupPage extends StatelessWidget {
                         context
                             .read<RecruiterSignupBloc>()
                             .add(RecruiterSignupSendOtpEmail(emailMap));
-                        // Navigator.push(
-                        //   context,
-                        //   MaterialPageRoute(
-                        //     builder: (context) => RecruiterVerifyEmailScreen(),
-                        //   ),
-                        // );
+
                       } else {
                         showSnackbar(
                             'Unknown error while recruiter signup.', context);
@@ -242,13 +224,6 @@ class RecruiterSignupPage extends StatelessWidget {
                     } else if (state is RecruiterSignupSendOtpLoaded) {
                       final data = state.sendOtpEmail;
 
-                      // Navigator.push(
-                      //   context,
-                      //   MaterialPageRoute(
-                      //     builder: (context) => RecruiterVerifyEmailScreen(
-                      //         eController.text.trim()),
-                      //   ),
-                      // );
                     }
                   },
                   child: commonRedContainer(
@@ -300,11 +275,9 @@ class RecruiterSignupPage extends StatelessWidget {
                   ],
                 ),
                 mSpacer(mHeight: 26.0),
-                // dividerLine(),
+
                 mSpacer(),
-                // belowBars(
-                //     text: "Continue with Google",
-                //     imgUrl: "assets/Icons/google.svg"),
+
                 mSpacer(mHeight: 120.0),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,

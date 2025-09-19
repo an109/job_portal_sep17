@@ -21,8 +21,9 @@ class UploadFileLoading extends UploadFileState {
 
 class UploadFileLoaded extends UploadFileState {
   final UploadFileEntity uploadFileEntity;
+  final String uploadType;
 
-  const UploadFileLoaded(this.uploadFileEntity);
+  UploadFileLoaded(this.uploadFileEntity, {this.uploadType = 'unknown'});
 }
 
 class UploadFileError extends UploadFileState {

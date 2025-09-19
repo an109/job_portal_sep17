@@ -144,7 +144,8 @@ class _UserProfileScreen2State extends State<UserProfileScreen2> {
           'file': await MultipartFile.fromFile(file.path, filename: file.path.split('/').last),
         });
 
-        context.read<UploadFileBloc>().add(LoadUploadFile(formData));
+        context.read<UploadFileBloc>().add(
+            LoadUploadFile(formData, uploadType: 'profile_pic'));
       } catch (e) {
         showSnackbar('Upload failed: $e', context);
       }
@@ -194,7 +195,8 @@ class _UserProfileScreen2State extends State<UserProfileScreen2> {
       ),
     });
     if (shouldUploadResume) {
-      context.read<UploadFileBloc>().add(LoadUploadFile(formData));
+      context.read<UploadFileBloc>().add(
+          LoadUploadFile(formData, uploadType: 'resume'));
     } else {
       shouldUploadResume = true;
     }
@@ -446,12 +448,22 @@ class _UserProfileScreen2State extends State<UserProfileScreen2> {
                               listener: (context, state) {
                                 if (state is UploadFileLoaded) {
                                   final resumeUrl = state.uploadFileEntity;
+                                  final uploadType = state.uploadType;
                                   final url = state.uploadFileEntity.url.first;
+                                  if (uploadType == 'profile_pic') {
                                   sl<PreferencesManager>().setString('user_profile_pic', url);
                                   setState(() {
                                     _profilePicPath = url;
                                   });
                                   showSnackbar('Profile picture updated', context);
+                                  }
+                                  else if (uploadType == 'resume') {
+                                    // 👇 Handle resume
+                                    showSnackbar('Resume uploaded successfully', context);
+                                    context.read<UploadResumeBloc>().add(ResetUploadResume());
+                                    updateProfileApi({'resume': url}); // ✅ Save to profile
+                                  }
+
                                   context.read<UploadResumeBloc>().add(ResetUploadResume());
                                   final map = {'resume': resumeUrl.url.first};
                                   developer.log('Resume url : ${resumeUrl.url.first}');
@@ -490,9 +502,9 @@ class _UserProfileScreen2State extends State<UserProfileScreen2> {
                                             const ChooseYourTemplateScreen(),
                                       ),
                                     );
-                                    // context
-                                    //     .read<UploadResumeBloc>()
-                                    //     .add(const PickResume());
+                                    context
+                                        .read<UploadResumeBloc>()
+                                        .add(const PickResume());
                                   },
                                   child: Text(
                                     " Edit ",

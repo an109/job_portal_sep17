@@ -44,6 +44,7 @@ class _UserExperienceApprovalScreenState extends State<UserExperienceApprovalScr
 
   List<CompanyItem> _allCompanies = [];
   List<JobRoleItem> _allJobRoles = [];
+  Map<String, bool> isUploadComplete = {};
 
   final _formKey = GlobalKey<FormState>();
 
@@ -149,18 +150,22 @@ class _UserExperienceApprovalScreenState extends State<UserExperienceApprovalScr
             BlocListener<YourExperienceBloc, YourExperienceState>(
               listener: (context, state) {
                 if (state is PickExperienceProofLoaded) {
-                  developer.log("File picked: ${state.experienceProof}");
+                  developer.log(">>>>>>>>>>>>>>>File picked: ${state.experienceProof}");
                   final bloc = context.read<YourExperienceBloc>();
                   final blocProofs = bloc.experienceProofs;
                   for (var entry in blocProofs.entries) {
                     if (entry.value is PlatformFile) {
                       final companyName = entry.key;
                       final platformFile = entry.value as PlatformFile;
+                      developer.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>$platformFile");
+                      developer.log("➡️ Picked file ${platformFile.name} for company: $companyName");
                       setState(() {
                         experienceProofs[companyName] = platformFile;
                         final index = jobExperienceControllers.indexWhere((e) => e.company_name == companyName);
                         if (index != -1) {
                           jobExperienceControllers[index].expProof = platformFile.name;
+                          developer.log("📝 Updated JobExperienceController for $companyName with file ${platformFile.name}");
+
                         }
                       });
 
@@ -180,16 +185,26 @@ class _UserExperienceApprovalScreenState extends State<UserExperienceApprovalScr
             BlocListener<UploadFileBloc, UploadFileState>(
               listener: (context, state) {
                 if (state is UploadFileLoaded) {
-                  final url = state.uploadFileEntity.url.first;
-                  developer.log('Certificate uploaded successfully: $url for company: $_lastUploadedCompany');
+                  final rawUrls = state.uploadFileEntity.url;
+                  String? url;
+
+                  if (rawUrls is List && rawUrls.isNotEmpty && rawUrls[0] is String) {
+                    url = rawUrls[0] as String;
+                  }
+
+                  if (url == null) {
+                    developer.log("❌ Invalid URL from upload");
+                    _isUploading = false;
+                    return;
+                  }
 
                   if (_lastUploadedCompany != null) {
                     setState(() {
-                      uploadedCertificateUrls[_lastUploadedCompany!] = url;
+                      uploadedCertificateUrls[_lastUploadedCompany!] = url!;
+                      isUploadComplete[_lastUploadedCompany!] = true; // ✅ Mark as complete
 
-                      // Update the corresponding job experience controller
                       final index = jobExperienceControllers.indexWhere(
-                              (e) => e.company_name == _lastUploadedCompany!
+                            (e) => e.company_name == _lastUploadedCompany!,
                       );
                       if (index != -1) {
                         jobExperienceControllers[index].expProof = url;
@@ -200,15 +215,18 @@ class _UserExperienceApprovalScreenState extends State<UserExperienceApprovalScr
                     _isUploading = false;
                   }
                 } else if (state is UploadFileError) {
-                  developer.log('Upload failed');
+                  if (_lastUploadedCompany != null) {
+                    setState(() {
+                      isUploadComplete[_lastUploadedCompany!] = false; // ✅ Mark as failed
+                    });
+                  }
                   _isUploading = false;
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Failed to upload certificate')),
                   );
                 }
               },
-            ),
-          ],
+            ),          ],
           child: BlocBuilder<OpportunityBloc, OpportunityState>(
             builder: (context, state) {
               List<String> companies = [];
@@ -367,13 +385,47 @@ class _UserExperienceApprovalScreenState extends State<UserExperienceApprovalScr
                             child: nextButton(
                               title: "Save Changes",
                               onTap: () async {
+                                if (_isUploading) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Please wait for certificate upload to complete')),
+                                  );
+                                  return;
+                                }
+
+                                final companiesWithPendingUploads = jobExperienceControllers
+                                    .where((e) => experienceProofs.containsKey(e.company_name)) // File picked
+                                    .where((e) => isUploadComplete[e.company_name] != true)   // But upload not done
+                                    .map((e) => e.company_name)
+                                    .toList();
+
+                                if (companiesWithPendingUploads.isNotEmpty) {
+                                  final firstCompany = companiesWithPendingUploads.first;
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('Please wait — uploading certificate for $firstCompany...')),
+                                  );
+                                  return;
+                                }
+                                final isAnyUploadInProgress = jobExperienceControllers.any((e) {
+                                  final hasFile = experienceProofs.containsKey(e.company_name);
+                                  final isNotComplete = isUploadComplete[e.company_name] != true;
+                                  return hasFile && isNotComplete;
+                                });
+
+                                if (isAnyUploadInProgress) {
+                                  final firstPending = jobExperienceControllers.firstWhere((e) {
+                                    final hasFile = experienceProofs.containsKey(e.company_name);
+                                    final isNotComplete = isUploadComplete[e.company_name] != true;
+                                    return hasFile && isNotComplete;
+                                  });
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('Uploading certificate for ${firstPending.company_name}...')),
+                                  );
+                                  return;
+                                }
+
+
+                                // ✅ 3. If all good, save
                                 if (_formKey.currentState?.validate() ?? false) {
-                                  if (_isUploading) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('Please wait for certificate upload to complete')),
-                                    );
-                                    return;
-                                  }
                                   await saveExperienceChanges();
                                 } else {
                                   ScaffoldMessenger.of(context).showSnackBar(
@@ -381,6 +433,21 @@ class _UserExperienceApprovalScreenState extends State<UserExperienceApprovalScr
                                   );
                                 }
                               },
+                              // onTap: () async {
+                              //   if (_formKey.currentState?.validate() ?? false) {
+                              //     if (_isUploading) {
+                              //       ScaffoldMessenger.of(context).showSnackBar(
+                              //         const SnackBar(content: Text('Please wait for certificate upload to complete')),
+                              //       );
+                              //       return;
+                              //     }
+                              //     await saveExperienceChanges();
+                              //   } else {
+                              //     ScaffoldMessenger.of(context).showSnackBar(
+                              //       const SnackBar(content: Text("Please complete all fields")),
+                              //     );
+                              //   }
+                              // },
                             ),
                           ),
                         ),
@@ -398,11 +465,16 @@ class _UserExperienceApprovalScreenState extends State<UserExperienceApprovalScr
   }
 
   Future<void> _uploadCertificateForCompany(String companyName, PlatformFile file) async {
-    if (file.path == null || file.path!.isEmpty) return;
+    if (file.path == null || file.path!.isEmpty)  {
+      developer.log("No file path for company: $companyName");
+      return;
+    }
 
     setState(() {
       _isUploading = true;
       _lastUploadedCompany = companyName;
+      isUploadComplete[companyName] = false;
+      developer.log("🚀 Upload started for company: $companyName with file: ${file.name}");
     });
 
     try {
@@ -416,18 +488,22 @@ class _UserExperienceApprovalScreenState extends State<UserExperienceApprovalScr
         ),
       );
 
+      developer.log("📤 Dispatching UploadFileBloc event with file: $fileName for $companyName");
+
       context.read<UploadFileBloc>().add(LoadUploadFile(formData));
     } catch (e) {
-      developer.log("Error uploading certificate: $e");
+      developer.log("❌ Error creating FormData for $companyName: $e");
       setState(() {
         _isUploading = false;
         _lastUploadedCompany = null;
+        isUploadComplete[companyName] = false;
       });
     }
   }
 
   Future<void> saveExperienceChanges() async {
     final repository = sl<ProfileApiService>();
+    developer.log("💾 Saving experience changes...");
 
     final experienceList = jobExperienceControllers.map((e) {
       final totalExp = calculateExperience(e.start_year.text, e.end_year.text);
@@ -448,11 +524,25 @@ class _UserExperienceApprovalScreenState extends State<UserExperienceApprovalScr
       if (jobRole.id == null) {
         throw Exception('Invalid job role: ${e.jobRoleController.text}');
       }
+      String certificateUrl;
 
-      // Use the uploaded certificate URL, fallback to existing proof, then to "no_file.pdf"
-      final certificateUrl = uploadedCertificateUrls[e.company_name] ??
-          e.expProof ??
-          "no_file.pdf";
+// ✅ If upload was triggered (file picked), we MUST use uploaded URL
+      if (experienceProofs.containsKey(e.company_name)) {
+        // Upload was triggered — must have URL
+        final uploadedUrl = uploadedCertificateUrls[e.company_name];
+        if (uploadedUrl != null) {
+          certificateUrl = uploadedUrl;
+        } else {
+          // This should not happen if logic is correct — but fail safe
+          developer.log("❌ No uploaded URL for ${e.company_name} even though upload was triggered");
+          certificateUrl = "no_file.pdf";
+        }
+      } else {
+        // No new upload — use existing proof or default
+        certificateUrl = e.expProof ?? "no_file.pdf";
+      }
+      developer.log("📦 Preparing experience for ${e.company_name}: role=${e.jobRoleController.text}, cert=$certificateUrl");
+
 
       return {
         "company_id": company.id,

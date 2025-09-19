@@ -31,7 +31,7 @@ class _SignUpStudent_2State extends State<SignUpStudent_2> {
   final TextEditingController _pinController = TextEditingController();
   final FocusNode _pinFocusNode = FocusNode();
   Timer? _timer;
-  int _start = 15;
+  int _start = 25;
   bool _canResend = false;
 
   @override

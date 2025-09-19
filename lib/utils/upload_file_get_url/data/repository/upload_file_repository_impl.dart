@@ -20,14 +20,15 @@ class UploadFileRepositoryImpl extends UploadFileRepository {
         developer.log('.checkk response in repository : ${res.data}');
         return DataSuccess(res.data);
       } else {
-        developer.log('..checkk response in repository : ${res.data}');
+        developer.log('Error response: ${res.response.statusCode} - ${res.response.statusMessage}');
         return DataFailed(DioException(
-            error: res.response.statusMessage,
+            error: 'Server error: ${res.response.statusCode}',
             response: res.response,
             type: DioExceptionType.badResponse,
             requestOptions: res.response.requestOptions));
       }
     } on DioException catch (e) {
+      developer.log('Dio error: ${e.message}');
       final error = e.type;
       developer.log('....checkk  : $error');
       return DataFailed(e);
