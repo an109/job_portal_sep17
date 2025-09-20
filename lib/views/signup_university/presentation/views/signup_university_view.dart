@@ -9,6 +9,8 @@ import 'package:job_portal/views/signup_student/presentation/views/signup_studen
 import 'package:job_portal/views/signup_university/presentation/views/verify_university_email.dart';
 import 'package:job_portal/widgets/widgets.dart';
 
+import '../../../../injection_container.dart';
+import '../../../../utils/storage/shared_preference.dart';
 import '../../../user_profile/presentation/views/user_terms_and_conditions_view.dart';
 
 class SignupUniversityView extends StatefulWidget {
@@ -193,7 +195,7 @@ class _SignupUniversityViewState extends State<SignupUniversityView> {
 
                 // BlocListener and Register Button
                 BlocListener<RemoteSignupBloc, RemoteSignupState>(
-                  listener: (context, state) {
+                  listener: (context, state) async {
                     if (state is RemoteSignupError) {
                       showSnackbar('Some error occured while signing up.', context);
                     } else if (state is RemoteSignupDone) {
@@ -208,6 +210,14 @@ class _SignupUniversityViewState extends State<SignupUniversityView> {
                             .read<RemoteSignupBloc>()
                             .add(RemoteSingupSendOtpEmail(emailMap));
                       } else {
+
+                        final prefs = sl<PreferencesManager>();
+                        await prefs.setToken(data.token ?? "");
+                        await prefs.setUserType("university");
+                        await prefs.setString(PreferencesManager.USER_NAME,
+                            "${firstNameController.text.trim()} ${surnameController.text.trim()}");
+                        await prefs.setString(PreferencesManager.USER_EMAIL, emailController.text.trim());
+
                         Map<String, dynamic> emailMap = {};
                         if (data.user != null) {
                           emailMap.addAll({'email': data.user!.email});

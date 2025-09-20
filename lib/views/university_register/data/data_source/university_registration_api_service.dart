@@ -1,4 +1,3 @@
-// data/data_source/university_registration_api_service.dart
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 import '../../../../utils/constants/urls.dart';

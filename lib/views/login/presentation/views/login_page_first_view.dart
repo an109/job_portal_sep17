@@ -19,6 +19,7 @@ import 'package:job_portal/views/signup_university/presentation/views/verify_uni
 import '../../../../ui_helper/ui_helper.dart';
 import '../../../../widgets/widgets.dart';
 import '../../../Bottom_Nav_Bar/Recruiter_Bottom_Nav_Bar.dart';
+import '../../../Bottom_Nav_Bar/University_Bottom_Nav_Bar.dart';
 import '../../../Common_Screens/presentation/bloc/forgot_password_bloc.dart';
 import '../../../Common_Screens/presentation/view/Forgot_password_Screen.dart';
 import '../../../company_register/presentation/view/company_profile_screen.dart';
@@ -278,13 +279,13 @@ class _SignInPage_1State extends State<LogInPage1> {
                                       (route) => false,
                                 );
                               } else if (user.user_role == USERTYPE.UNIVERSITY.name) {
-                                // Navigator.pushAndRemoveUntil(
-                                //   context,
-                                //   MaterialPageRoute(
-                                //     builder: (context) => const UniversityBottomNavBar(), // <-- Create if needed
-                                //   ),
-                                //       (route) => false,
-                                // );
+                                Navigator.pushAndRemoveUntil(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => UniversityBottomNavBar(), // <-- Create if needed
+                                  ),
+                                      (route) => false,
+                                );
                               }
                             }
 
@@ -317,7 +318,9 @@ class _SignInPage_1State extends State<LogInPage1> {
                       belowBars(
                         text: "Continue with Google",
                         imgUrl: "assets/Icons/google.svg",
-                        onTap: () {},
+                        onTap: () {
+
+                        },
                       ),
                       mSpacer(),
                       belowBars(

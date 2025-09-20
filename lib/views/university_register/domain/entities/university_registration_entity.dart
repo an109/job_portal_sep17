@@ -23,6 +23,20 @@ class UniversityRegistrationEntity extends Equatable {
     required this.socialMediaLink,
   });
 
+  factory UniversityRegistrationEntity.fromJson(Map<String, dynamic> json) {
+    return UniversityRegistrationEntity(
+      collegeName: json['college_name'] ?? '',
+      courseIds: List<int>.from(json['course_ids'] ?? []),
+      profilePic: json['profile_pic'] ?? '',
+      universityLogoUrl: json['university_logo_url'] ?? '',
+      address: json['address'] ?? '',
+      pincode: json['pincode'] ?? '',
+      websiteLink: json['website_link'] ?? '',
+      about: json['about'] ?? '',
+      socialMediaLink: json['social_media_link'] ?? '',
+    );
+  }
+
   @override
   List<Object?> get props => [
     collegeName,

@@ -5,6 +5,7 @@ class JobDetailsResponseModel extends JobDetailsEntity {
             : super(
                 job_id: int.parse((json['job_id'] ?? '0').toString()),
                 opportunity_type: json['opportunity_type'],
+                has_applied: json['has_applied'] ?? false,
                 job_type: json['job_type'] ?? '',
                 jobProfile: json['job_role'] ?? '', // <-- Added fallback
                 job_description: json['job_description'] ?? '',

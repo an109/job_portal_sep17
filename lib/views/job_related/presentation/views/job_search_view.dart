@@ -1,5 +1,3 @@
-// ignore_for_file: prefer_const_constructors
-
 import 'dart:developer' as developer show log;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -44,13 +42,10 @@ class _JobSearchScreenState extends State<JobSearchScreen> {
       final start = int.tryParse(parts[0]);
       final end = int.tryParse(parts[1]);
       if (start != null && end != null) {
-        // developer.log(
-        //     "Salary range : INR ${format.format(start)} - ${format.format(end)}");
         return 'INR ${format.format(start)} - ${format.format(end)}';
       }
     }
 
-    // Fallback
     return salaryRange;
   }
 

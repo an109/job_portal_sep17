@@ -88,10 +88,16 @@ class Urls {
     if (relativePath == null || relativePath.isEmpty) {
       return placeHolderImage;
     }
-    if (relativePath.startsWith('http') || relativePath.startsWith('https')) {
+    if (relativePath.startsWith('http://') || relativePath.startsWith('https://')) {
+      if (relativePath.contains('example.com') || relativePath.contains('dummyimage.com')) {
+        return placeHolderImage;
+      }
       return relativePath;
     }
-    return '$baseUrl/$relativePath';
+    String cleanPath = relativePath.startsWith('/')
+        ? relativePath.substring(1)
+        : relativePath;
+    return '$baseUrl$relativePath';
   }
 
 }

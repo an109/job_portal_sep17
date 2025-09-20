@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:job_portal/UI_Helper/responsive_extensions.dart';
 import 'package:job_portal/ui_helper/ui_helper.dart';
 import 'package:job_portal/widgets/widgets.dart';
+import '../../../../utils/storage/shared_preference.dart';
 import '../../../Bottom_Nav_Bar/University_Bottom_Nav_Bar.dart';
 import '../../../detailed_signup_student/domain/entities/metadata_entities.dart';
 import '../../../detailed_signup_student/presentation/bloc/master_data_bloc/master_data_bloc.dart';
@@ -46,6 +47,11 @@ class _UniversityFillDetailsScreenState extends State<UniversityFillDetailsScree
   @override
   void initState() {
     super.initState();
+    final prefs = sl<PreferencesManager>();
+    final token = prefs.getToken();
+    final userType = prefs.getUserType();
+    print('📤>>>>>>>>>>>>>>>>>> [LOG] Using Token: $token');
+    print('📤>>>>>>>>>>>>>>>>>> [LOG] Using user type: $userType');
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<MasterDataBloc>().add(LoadMasterData());
     });
@@ -90,12 +96,12 @@ class _UniversityFillDetailsScreenState extends State<UniversityFillDetailsScree
         about: about,
         socialMediaLink: socialMediaLink,
       );
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => UniversityBottomNavBar(),
-        ),
-      );
+      // Navigator.push(
+      //   context,
+      //   MaterialPageRoute(
+      //     builder: (context) => UniversityBottomNavBar(),
+      //   ),
+      // );
 
       print('📤 [LOG] Submitting University Registration: $entity');
 
@@ -143,6 +149,12 @@ class _UniversityFillDetailsScreenState extends State<UniversityFillDetailsScree
                       print('✅ [LOG] Success: ${state.entity.collegeName}');
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('University registered successfully!')),
+                      );
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => UniversityBottomNavBar(),
+                        ),
                       );
                     } else if (state is UniversityRegistrationFailure) {
                       print('❌ [LOG] Failed: ${state.message}');

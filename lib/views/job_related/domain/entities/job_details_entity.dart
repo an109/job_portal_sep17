@@ -44,6 +44,7 @@ class JobDetailsEntity {
   final List<String> screening_questions;
   final int numberOfApplicants;
   final String postedDaysAgo;
+  final bool has_applied;
 
   JobDetailsEntity({
     required this.job_id,
@@ -91,5 +92,6 @@ class JobDetailsEntity {
     required this.screening_questions,
     required this.numberOfApplicants,
     required this.postedDaysAgo,
+    required this.has_applied,
   });
 }

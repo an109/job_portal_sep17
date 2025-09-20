@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import '../../../../utils/resourses/data_state.dart';
 import '../../domain/entities/university_registration_entity.dart';
@@ -14,8 +16,9 @@ class UniversityRegistrationRepositoryImpl implements UniversityRegistrationRepo
     try {
       final response = await _apiService.registerUniversity(entity.toJson());
 
-      if (response.success == true) {
-        return DataSuccess(entity);
+      if (response.success == true ) {
+        final UniversityRegistrationEntity createdEntity = UniversityRegistrationEntity.fromJson(response.data);
+        return DataSuccess(createdEntity);
       } else {
         final dioError = DioException(
           requestOptions: RequestOptions(path: '/universitydetail'),

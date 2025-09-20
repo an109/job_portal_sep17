@@ -8,6 +8,7 @@ import 'package:job_portal/views/signup_student/presentation/bloc/verify_otp_blo
 import 'package:job_portal/views/signup_student/presentation/bloc/verify_otp_bloc/verify_otp_state.dart';
 import 'package:job_portal/views/detailed_signup_student/presentation/views/signup_as_anyone_view.dart';
 import '../../../../ui_helper/ui_helper.dart';
+import '../../../../utils/storage/shared_preference.dart';
 import '../../../../widgets/widgets.dart';
 import '../../../login/presentation/views/login_page_first_view.dart';
 import '../../../signup_student/presentation/bloc/remote_signup_bloc/remote_signup_bloc.dart';
@@ -165,11 +166,15 @@ class _VerifyUniversityEmailState extends State<VerifyUniversityEmail> {
                 ),
                 mSpacer(),
                 BlocListener<VerifyOtpBloc, VerifyOtpState>(
-                  listener: (context, state) {
+                  listener: (context, state) async {
                     if (state is VerifyOtpLoaded) {
                       final data = state.verifyOtpEntity;
 
                       if (data.message == "email verification successful") {
+                        final prefs = sl<PreferencesManager>();
+
+                        await prefs.setToken(data.token ?? "");
+                        await prefs.setUserType("university");
                         Navigator.push(
                           context,
                           MaterialPageRoute(

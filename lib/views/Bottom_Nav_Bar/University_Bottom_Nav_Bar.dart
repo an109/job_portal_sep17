@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:job_portal/utils/theme/custom_themes/color_theme.dart';
 import 'package:job_portal/views/Recruiter_Profile_Screens/Recruiter_ProfileScreen1.dart';
+import '../University_profile_screen/presentation/views/university_profile_screen1.dart';
 import '../signup_recruiter/presentation/views/RecruiterApprovalScreen.dart';
 import '../recruiter_dashboard/presentation/views/Recruiter_Dashboard.dart';
 import '../feed/presentation/views/feed_view.dart';
@@ -18,9 +19,9 @@ class _UniversityBottomNavBarState extends State<UniversityBottomNavBar> {
   Widget build(BuildContext context) {
     List<Widget> navTo = [
       FeedScreen(),
-      RecruiterDashboard(),
+      UniversityProfilescreen1(),
       RecruiterApprovalScreen(),
-      RecruiterProfilescreen1()
+      UniversityProfilescreen1()
     ];
     return Scaffold(
       body: navTo[selectedIndex],
@@ -38,20 +39,20 @@ class _UniversityBottomNavBarState extends State<UniversityBottomNavBar> {
               "assets/Icons/dashboard_icon.svg",
               color: (selectedIndex == 1) ? TColors.secondary : Colors.white,
             ),
-            label: "Dashboard",
+            label: "Promotion",
           ),
           BottomNavigationBarItem(
               icon: SvgPicture.asset(
                 "assets/Icons/Approval_icon.svg",
                 color: (selectedIndex == 2) ? TColors.secondary : Colors.white,
               ),
-              label: "Approvals"),
+              label: "Approval"),
           BottomNavigationBarItem(
               icon: SvgPicture.asset(
                 "assets/Icons/nav_profile.svg",
                 color: (selectedIndex == 3) ? TColors.secondary : Colors.white,
               ),
-              label: "Approvals")
+              label: "Profile")
         ],
         iconSize: 24,
         type: BottomNavigationBarType.fixed,

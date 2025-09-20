@@ -33,7 +33,7 @@ class JobDetailsScreen extends StatefulWidget {
 class _JobDetailsScreenState extends State<JobDetailsScreen> {
   String messageWhileLoadingDetails = '';
   bool areDetailsLoaded = false;
-  bool _hasApplied = false;
+  bool hasApplied = false;
 
   @override
   void didChangeDependencies() {
@@ -183,7 +183,22 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
             builder: (context, state) {
               developer.log('JobDetailsScreen state: ${state.runtimeType}');
 
-              if (state is JobDetailsLoaded) {
+              if (state is JobDetailsInitial) {
+                // Handle initial state - show loading
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CircularProgressIndicator(
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      SizedBox(height: 20),
+                      Text("Loading job details..."),
+                    ],
+                  ),
+                );
+              }
+              else if (state is JobDetailsLoaded) {
                 final data = state.jobDetailsEntity;
                 developer.log('Job details loaded successfully: ${state.jobDetailsEntity}');
                 developer.log('Job Profile: ${data.jobProfile}');
@@ -191,12 +206,22 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                 developer.log('Job Description: ${data.job_description}');
                 developer.log('City Choice: ${data.cityChoice}');
                 developer.log('Salary: ${data.salary}');
-                areDetailsLoaded = true;
+                developer.log('Has Applied: ${data.has_applied}');
+
+                // Update state only if it's different to avoid unnecessary rebuilds
+                if (hasApplied != data.has_applied) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    setState(() {
+                      hasApplied = data.has_applied;
+                      areDetailsLoaded = true;
+                    });
+                  });
+                }
+
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                     // height: 93,
                       width: double.infinity,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(10),
@@ -215,7 +240,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                                 width: 60,
                                 child: data.logo_url != null && data.logo_url!.isNotEmpty
                                     ? Image.network(
-                                  Urls.getFullImageUrl(data.logo_url),
+                                  Urls.getFullImageUrl(data.logo_url!),
                                   fit: BoxFit.cover,
                                   errorBuilder: (context, error, stackTrace) {
                                     developer.log('❌ Failed to load logo: ${data.logo_url}');
@@ -300,8 +325,6 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                               ? data.cityChoice!.join(", ")
                               : 'City Choice'),
                         ),
-
-
                         jobRelatedOptions(title: "45 Applicants"),
                       ],
                     ),
@@ -332,7 +355,6 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                                 if (widget.onShowCompanyJobs != null) {
                                   widget.onShowCompanyJobs!();
                                 }
-                                ;
                               },
                               child: Text(
                                   "More Job openings at ${data.company_name}",
@@ -400,36 +422,67 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
       ),
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(24),
-        child: BlocListener<JobApplyBloc, JobApplyState>(
-          listener: (context, state) {
-            if (state is JobApplyLoading) {
-              developer.log('Job apply loading');
-            } else if (state is JobApplyLoaded) {
-              developer.log('Job apply loaded: ${state.jobApplyEntity.message}');
-              showSnackbar(state.jobApplyEntity.message, context);
-              showCustomSnackBar(context);
-              Navigator.pop(context);
-            } else if (state is JobApplyError) {
-              developer.log('Job apply error: ${state.toString()}');
-              showCustomSnackBar(context);
+        child: BlocBuilder<JobDetailsBloc, JobDetailsState>(
+          builder: (context, state) {
+            bool currentHasApplied = hasApplied;
+
+            if (state is JobDetailsLoaded) {
+              currentHasApplied = state.jobDetailsEntity.has_applied;
             }
-          },
-          child: InkWell(
-              onTap: () {
-                developer.log('User tapped Apply button');
-                if (areDetailsLoaded) {
-                  context
-                      .read<JobApplyBloc>()
-                      .add(LoadJobApply(widget.job_id.toString()));
-                }
-                ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("Applied Successfully")));
-                Navigator.pushReplacement(
+
+            return BlocListener<JobApplyBloc, JobApplyState>(
+              listener: (context, applyState) {
+                if (applyState is JobApplyLoading) {
+                  developer.log('Job apply loading');
+                } else if (applyState is JobApplyLoaded) {
+                  developer.log('Job apply loaded: ${applyState.jobApplyEntity.message}');
+                  showSnackbar(applyState.jobApplyEntity.message, context);
+
+                  // Update the UI by reloading job details to get updated has_applied status
+                  final map = {'job_id': widget.job_id.toString()};
+                  context.read<JobDetailsBloc>().add(LoadJobDetail(map));
+
+                  Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => Student_Bottom_Nav_bar()));
+                        builder: (context) => Student_Bottom_Nav_bar()
+                    ),
+                  );
+                } else if (applyState is JobApplyError) {
+                  developer.log('Job apply error: ${applyState.toString()}');
+                  showCustomSnackBar(context);
+                }
               },
-              child: commonRedContainer(text: "Apply")),
+              child: currentHasApplied
+                  ? ElevatedButton(
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text("You have already applied for this job"),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.grey,
+                  foregroundColor: Colors.white,
+                  minimumSize: Size(double.infinity, 50),
+                ),
+                child: Text("Already Applied"),
+              )
+                  : InkWell(
+                onTap: () {
+                  developer.log('User tapped Apply button');
+                  if (state is JobDetailsLoaded) {
+                    context
+                        .read<JobApplyBloc>()
+                        .add(LoadJobApply(widget.job_id.toString()));
+                  }
+                },
+                child: commonRedContainer(text: "Apply"),
+              ),
+            );
+          },
         ),
       ),
     );
