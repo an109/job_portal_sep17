@@ -167,7 +167,9 @@ class _UserExperienceApprovalScreenState extends State<UserExperienceApprovalScr
                           developer.log("📝 Updated JobExperienceController for $companyName with file ${platformFile.name}");
 
                         }
-                      });
+                      }
+
+                      );
 
                       // Upload the file immediately after picking
                       _uploadCertificateForCompany(companyName, platformFile);
@@ -343,6 +345,7 @@ class _UserExperienceApprovalScreenState extends State<UserExperienceApprovalScr
                             } else {
                               certificateText = "Upload Certificate";
                             }
+                            developer.log("📄 Card for ${curr.company_name}: certificateText = $certificateText");
 
                             return Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -630,6 +633,7 @@ class JobExperienceFillingCard extends StatefulWidget {
 class _JobExperienceFillingCardState extends State<JobExperienceFillingCard> {
   @override
   Widget build(BuildContext context) {
+    developer.log("🧱 Rebuilding UserExperienceApprovalScreen UI");
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -747,7 +751,7 @@ class _JobExperienceFillingCardState extends State<JobExperienceFillingCard> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     SvgPicture.asset(
-                      "assets/Icons/certificate.svg",
+                      "assets/Icons/application_icon.svg",
                       color: widget.isCertificateUploaded ? Colors.green : Colors.grey,
                       height: 12,
                       width: 12,

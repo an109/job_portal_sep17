@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'recruiter_schedule_interview_api_service.dart';
+part of 'university_registration_api_service.dart';
 
 // dart format off
 
@@ -10,9 +10,9 @@ part of 'recruiter_schedule_interview_api_service.dart';
 
 // ignore_for_file: unnecessary_brace_in_string_interps,no_leading_underscores_for_local_identifiers,unused_element,unnecessary_string_interpolations,unused_element_parameter
 
-class _RecruiterScheduleInterviewApiService
-    implements RecruiterScheduleInterviewApiService {
-  _RecruiterScheduleInterviewApiService(
+class _UniversityRegistrationApiService
+    implements UniversityRegistrationApiService {
+  _UniversityRegistrationApiService(
     this._dio, {
     this.baseUrl,
     this.errorLogger,
@@ -27,47 +27,28 @@ class _RecruiterScheduleInterviewApiService
   final ParseErrorLogger? errorLogger;
 
   @override
-  Future<RecruiterScheduleInterviewResponseModel> scheduleInterview(
-    int applicantId,
-    String message,
-    String interviewType,
-    String interviewDate,
-    String startTime,
-    String endTime,
-    String? videoLink,
+  Future<UniversityRegistrationResponse> registerUniversity(
+    Map<String, dynamic> body,
   ) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
-    queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
-    final _data = {
-      'message': message,
-      'interview_type': interviewType,
-      'interview_date': interviewDate,
-      'start_time': startTime,
-      'end_time': endTime,
-      'video_link': videoLink,
-    };
-    _data.removeWhere((k, v) => v == null);
-    final _options = _setStreamType<RecruiterScheduleInterviewResponseModel>(
-      Options(
-        method: 'POST',
-        headers: _headers,
-        extra: _extra,
-        contentType: 'application/x-www-form-urlencoded',
-      )
+    final _data = <String, dynamic>{};
+    _data.addAll(body);
+    final _options = _setStreamType<UniversityRegistrationResponse>(
+      Options(method: 'POST', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            'interview-invitations/${applicantId}',
+            'universitydetail',
             queryParameters: queryParameters,
             data: _data,
           )
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
     final _result = await _dio.fetch<Map<String, dynamic>>(_options);
-    late RecruiterScheduleInterviewResponseModel _value;
+    late UniversityRegistrationResponse _value;
     try {
-      _value = RecruiterScheduleInterviewResponseModel.fromJson(_result.data!);
+      _value = UniversityRegistrationResponse.fromJson(_result.data!);
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options);
       rethrow;

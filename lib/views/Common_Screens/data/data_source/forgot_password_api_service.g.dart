@@ -2,11 +2,13 @@
 
 part of 'forgot_password_api_service.dart';
 
+// dart format off
+
 // **************************************************************************
 // RetrofitGenerator
 // **************************************************************************
 
-// ignore_for_file: unnecessary_brace_in_string_interps,no_leading_underscores_for_local_identifiers,unused_element,unnecessary_string_interpolations
+// ignore_for_file: unnecessary_brace_in_string_interps,no_leading_underscores_for_local_identifiers,unused_element,unnecessary_string_interpolations,unused_element_parameter
 
 class _ForgotPasswordApiService implements ForgotPasswordApiService {
   _ForgotPasswordApiService(this._dio, {this.baseUrl, this.errorLogger});
@@ -30,7 +32,7 @@ class _ForgotPasswordApiService implements ForgotPasswordApiService {
       Options(method: 'POST', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            'users/forgotPassword',
+            'otp/send-otp',
             queryParameters: queryParameters,
             data: _data,
           )
@@ -85,6 +87,30 @@ class _ForgotPasswordApiService implements ForgotPasswordApiService {
     return httpResponse;
   }
 
+  @override
+  Future<HttpResponse<void>> resetPasswordWithOTP(
+    Map<String, dynamic> body,
+  ) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final _data = <String, dynamic>{};
+    _data.addAll(body);
+    final _options = _setStreamType<HttpResponse<void>>(
+      Options(method: 'POST', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            'users/resetPasswordWithOtp',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<void>(_options);
+    final httpResponse = HttpResponse(null, _result);
+    return httpResponse;
+  }
+
   RequestOptions _setStreamType<T>(RequestOptions requestOptions) {
     if (T != dynamic &&
         !(requestOptions.responseType == ResponseType.bytes ||
@@ -111,28 +137,6 @@ class _ForgotPasswordApiService implements ForgotPasswordApiService {
 
     return Uri.parse(dioBaseUrl).resolveUri(url).toString();
   }
-
-  @override
-  Future<HttpResponse<void>> resetPasswordWithOTP(Map<String, dynamic> body) async {
-    final _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{};
-    final _headers = <String, dynamic>{
-
-    };
-    final _data = <String, dynamic>{};
-    _data.addAll(body);
-    final _options = _setStreamType<HttpResponse<void>>(
-      Options(method: 'POST', headers: _headers, extra: _extra)
-          .compose(
-        _dio.options,
-        Urls.resetPasswordWithOTP,
-        queryParameters: queryParameters,
-        data: _data,
-      )
-          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
-    );
-    final _result = await _dio.fetch<void>(_options);
-    final httpResponse = HttpResponse(null, _result);
-    return httpResponse;
-  }
 }
+
+// dart format on

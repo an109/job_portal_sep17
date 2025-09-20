@@ -2,11 +2,13 @@
 
 part of 'job_screens_api_service.dart';
 
+// dart format off
+
 // **************************************************************************
 // RetrofitGenerator
 // **************************************************************************
 
-// ignore_for_file: unnecessary_brace_in_string_interps,no_leading_underscores_for_local_identifiers,unused_element,unnecessary_string_interpolations
+// ignore_for_file: unnecessary_brace_in_string_interps,no_leading_underscores_for_local_identifiers,unused_element,unnecessary_string_interpolations,unused_element_parameter
 
 class _JobScreensApiService implements JobScreensApiService {
   _JobScreensApiService(this._dio, {this.baseUrl, this.errorLogger}) {
@@ -66,7 +68,6 @@ class _JobScreensApiService implements JobScreensApiService {
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
     final _result = await _dio.fetch<Map<String, dynamic>>(_options);
-    developer.log('result: ${_result}');
     late JobDetailsResponseModel _value;
     try {
       _value = JobDetailsResponseModel.fromJson(_result.data!);
@@ -137,3 +138,5 @@ class _JobScreensApiService implements JobScreensApiService {
     return Uri.parse(dioBaseUrl).resolveUri(url).toString();
   }
 }
+
+// dart format on

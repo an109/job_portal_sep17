@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:http/http.dart' as http;
-import 'package:job_portal/injection_container.dart';
+import 'package:job_portal/injection_container.dart' hide sl;
 import 'package:job_portal/utils/constants/enums.dart';
 import 'package:job_portal/utils/constants/image_string.dart';
 import 'package:job_portal/utils/storage/shared_preference.dart';
@@ -23,6 +23,7 @@ import '../../../Common_Screens/presentation/bloc/forgot_password_bloc.dart';
 import '../../../Common_Screens/presentation/view/Forgot_password_Screen.dart';
 import '../../../company_register/presentation/view/company_profile_screen.dart';
 import '../../../detailed_signup_student/presentation/views/signup_as_anyone_view.dart';
+import '../../../university_register/presentation/views/university_registration.dart';
 import 'login_with_email_otp_view.dart';
 import '../../../signup_student/presentation/views/create_account.dart';
 
@@ -150,73 +151,6 @@ class _SignInPage_1State extends State<LogInPage1> {
                         },
                       ),
                       mSpacer(mHeight: 30.0),
-                      // BlocListener<RemoteLoginBloc, RemoteLoginState>(
-                      //   listener: (context, state) {
-                      //     if (state is RemoteLoginError) {
-                      //       showSnackbar(
-                      //           'There was an error logging in.', context);
-                      //     } else if (state is RemoteLoginLoaded) {
-                      //       final data = state.loginUserResponse;
-                      //       final prefs = sl<PreferencesManager>();
-                      //       prefs.setToken(data.token);
-                      //       prefs.setUserId(data.user.id.toString());
-                      //
-                      //       ///-----  save name and email
-                      //       prefs.setString(PreferencesManager.USER_NAME, "${data.user.first_name} ${data.user.last_name}");
-                      //       prefs.setString(PreferencesManager.USER_EMAIL, data.user.email);
-                      //       ///------
-                      //
-                      //       if (rememberMeValue) {
-                      //         prefs.setUserType(data.user.user_role);
-                      //       }
-                      //
-                      //       if (data.message == 'Login successful') {
-                      //         showSnackbar('Login successful', context);
-                      //         developer.log('Login data : ${data.toString()}');
-                      //         developer.log(
-                      //             'User Type on login : ${data.user.user_role.toString()}');
-                      //
-                      //         if (data.user.user_role ==
-                      //             USERTYPE.STUDENT.name) {
-                      //           Navigator.push(
-                      //             context,
-                      //             MaterialPageRoute(
-                      //               builder: (context) =>
-                      //               const Student_Bottom_Nav_bar(),
-                      //             ),
-                      //           );
-                      //         } else if (data.user.user_role ==
-                      //             USERTYPE.COMPANY.name) {
-                      //           Navigator.push(
-                      //             context,
-                      //             MaterialPageRoute(
-                      //               builder: (context) =>
-                      //                RecruiterBottomNavBar(),
-                      //             ),
-                      //           );
-                      //         }
-                      //       }
-                      //     }
-                      //   },
-                      //   child: commonRedContainer(
-                      //     text: "Log In",
-                      //     onTap: () async {
-                      //       if (_formKey.currentState!.validate()) {
-                      //         final loginMap = {
-                      //           "email": emailController.text.trim(),
-                      //           "password": passwordController.text.trim(),
-                      //         };
-                      //
-                      //         developer
-                      //             .log('Login Map : ${loginMap.toString()}');
-                      //
-                      //         context
-                      //             .read<RemoteLoginBloc>()
-                      //             .add(RemoteLoginData(loginMap));
-                      //       }
-                      //     },
-                      //   ),
-                      // ),
                       BlocListener<RemoteLoginBloc, RemoteLoginState>(
                         listener: (context, state) async {
 
@@ -306,12 +240,12 @@ class _SignInPage_1State extends State<LogInPage1> {
                                   ),
                                 );
                               } else if (user.user_role == USERTYPE.UNIVERSITY.name) {
-                                // Navigator.push(
-                                //   context,
-                                //   MaterialPageRoute(
-                                //     builder: (context) => UniversityDetailedSignupScreen(), // <-- Create this
-                                //   ),
-                                // );
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => UniversityFillDetailsScreen(),
+                                  ),
+                                );
                               }
                             }
 

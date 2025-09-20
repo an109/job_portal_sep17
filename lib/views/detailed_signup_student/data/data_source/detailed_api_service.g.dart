@@ -2,11 +2,13 @@
 
 part of 'detailed_api_service.dart';
 
+// dart format off
+
 // **************************************************************************
 // RetrofitGenerator
 // **************************************************************************
 
-// ignore_for_file: unnecessary_brace_in_string_interps,no_leading_underscores_for_local_identifiers,unused_element,unnecessary_string_interpolations
+// ignore_for_file: unnecessary_brace_in_string_interps,no_leading_underscores_for_local_identifiers,unused_element,unnecessary_string_interpolations,unused_element_parameter
 
 class _DetailedApiService implements DetailedApiService {
   _DetailedApiService(this._dio, {this.baseUrl, this.errorLogger}) {
@@ -247,40 +249,24 @@ class _DetailedApiService implements DetailedApiService {
 
   @override
   Future<HttpResponse<SubmitDetailedUserProfile>> submitDetailedUserProfile(
-      Map<String, dynamic> params,
-      ) async {
+    Map<String, dynamic> params,
+  ) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     final _data = <String, dynamic>{};
     _data.addAll(params);
-
     final _options = _setStreamType<HttpResponse<SubmitDetailedUserProfile>>(
       Options(method: 'POST', headers: _headers, extra: _extra)
           .compose(
-        _dio.options,
-        'user-details/detail',
-        queryParameters: queryParameters,
-        data: _data,
-      )
+            _dio.options,
+            'user-details/detail',
+            queryParameters: queryParameters,
+            data: _data,
+          )
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
-
-    // 🔥 Log request
-    developer.log("*** Request ***");
-    developer.log("uri: ${_options.uri}");
-    developer.log("method: ${_options.method}");
-    developer.log("headers: ${_options.headers}");
-    developer.log("data: $_data");
-
     final _result = await _dio.fetch<Map<String, dynamic>>(_options);
-
-    // 🔥 Log response
-    developer.log("*** Response ***");
-    developer.log("statusCode: ${_result.statusCode}");
-    developer.log("headers: ${_result.headers.map}");
-    developer.log("data: ${_result.data}");
-
     late SubmitDetailedUserProfile _value;
     try {
       _value = SubmitDetailedUserProfile.fromJson(_result.data!);
@@ -288,7 +274,6 @@ class _DetailedApiService implements DetailedApiService {
       errorLogger?.logError(e, s, _options);
       rethrow;
     }
-
     final httpResponse = HttpResponse(_value, _result);
     return httpResponse;
   }
@@ -384,3 +369,5 @@ class _DetailedApiService implements DetailedApiService {
     return Uri.parse(dioBaseUrl).resolveUri(url).toString();
   }
 }
+
+// dart format on

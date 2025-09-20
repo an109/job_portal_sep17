@@ -407,39 +407,6 @@ class _SignInPageUniversityStudentState extends State<SignupAsAnyOne> {
           child: Material(
             elevation: 4,
             borderRadius: BorderRadius.circular(8),
-            // child: BlocBuilder<JobRoleBloc, JobRoleState>(
-            //   builder: (context, state) {
-            //     if (state is JobRoleLoadingState) {
-            //       return const Padding(
-            //         padding: EdgeInsets.all(12),
-            //         child: Center(child: CircularProgressIndicator()),
-            //       );
-            //     } else if (state is JobRoleLoadedState) {
-            //       return ListView(
-            //         padding: EdgeInsets.zero,
-            //         shrinkWrap: true,
-            //         children: state.JobRoles.map((role) {
-            //           return ListTile(
-            //             dense: true,
-            //             visualDensity: VisualDensity(vertical: -3),
-            //             title: Text(role),
-            //             onTap: () {
-            //               jobRoleController.text = role;
-            //               _jobRoleOverlayEntry?.remove();
-            //               _jobRoleOverlayEntry = null;
-            //             },
-            //           );
-            //         }).toList(),
-            //       );
-            //     } else if (state is JobRoleErrorState) {
-            //       return Padding(
-            //         padding: const EdgeInsets.all(12),
-            //         child: Text(state.message),
-            //       );
-            //     }
-            //     return const SizedBox.shrink();
-            //   },
-            // ),
           ),
         ),
       ),
@@ -519,18 +486,6 @@ class _SignInPageUniversityStudentState extends State<SignupAsAnyOne> {
         appBar: AppBar(
           backgroundColor: Colors.white,
           title: const Text(""),
-          // actions: [
-          //   IconButton(
-          //     onPressed: () {
-          //       Navigator.push(
-          //           context,
-          //           MaterialPageRoute(
-          //               builder: (context) =>
-          //                   SignupPageYourSkills(params: {})));
-          //     },
-          //     icon: const Icon(Icons.double_arrow),
-          //   )
-          // ],
         ),
         body: SafeArea(
           child: SingleChildScrollView(
@@ -1040,23 +995,6 @@ class _SignInPageUniversityStudentState extends State<SignupAsAnyOne> {
                                         return const CircularProgressIndicator();
                                       },
                                     ),
-                                    // CustomAutocompleteGeneric(
-                                    //   options: courses,
-                                    //   label: 'Course Names',
-                                    //   displayStringForOption: (p0) => p0.name ?? '',
-                                    //   onSelected: (value) {
-                                    //     selectedCourse = value.name;
-                                    //     selectedSpecialization = null;
-                                    //     _specializations.clear();
-                                    //     _specializationFocus.unfocus(); // Reset focus
-                                    //     Future.delayed(Duration(milliseconds: 50), () {
-                                    //       context.read<DetailedSignupBloc>().add(
-                                    //         DetailedSignupGetSpecializations(value.id.toString()),
-                                    //       );
-                                    //     });
-                                    //     developer.log('Selected course variable : $selectedCourse');
-                                    //   },
-                                    // ),
                                     mSpacer(),
                                     Text(
                                       "College Name",

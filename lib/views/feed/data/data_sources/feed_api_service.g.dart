@@ -2,11 +2,13 @@
 
 part of 'feed_api_service.dart';
 
+// dart format off
+
 // **************************************************************************
 // RetrofitGenerator
 // **************************************************************************
 
-// ignore_for_file: unnecessary_brace_in_string_interps,no_leading_underscores_for_local_identifiers,unused_element,unnecessary_string_interpolations
+// ignore_for_file: unnecessary_brace_in_string_interps,no_leading_underscores_for_local_identifiers,unused_element,unnecessary_string_interpolations,unused_element_parameter
 
 class _FeedApiService implements FeedApiService {
   _FeedApiService(this._dio, {this.baseUrl, this.errorLogger}) {
@@ -24,7 +26,6 @@ class _FeedApiService implements FeedApiService {
     String page,
     String limit,
   ) async {
-    developer.log('*********************');
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{r'page': page, r'limit': limit};
     final _headers = <String, dynamic>{};
@@ -173,3 +174,5 @@ class _FeedApiService implements FeedApiService {
     return Uri.parse(dioBaseUrl).resolveUri(url).toString();
   }
 }
+
+// dart format on

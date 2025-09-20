@@ -43,7 +43,7 @@ class _SignUpStudent_2State extends State<SignUpStudent_2> {
   void startTimer() {
     setState(() {
       _canResend = false;
-      _start = 15;
+      _start = 25;
     });
 
     _timer?.cancel();
