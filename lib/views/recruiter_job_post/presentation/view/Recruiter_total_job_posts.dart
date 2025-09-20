@@ -167,7 +167,8 @@ class _RecruiterTotalJobPostsState extends State<RecruiterTotalJobPosts> {
                       return TotalJobPostsCard(
                         heading: job.jobRole,
                         subHeading: subHeadingText,
-                        status: job.status,
+                        // status: job.status,
+                        status: getStatusText(job.activeStatus),
                         nApplications: "(${job.totalApplications})",
                         buttonTitle: "View Application",
                         totalViews: job.views,
@@ -252,9 +253,16 @@ class TotalJobPostsCard extends StatelessWidget {
                   height: 26,
                   child: greyContainer(
                     text: status,
-                    bgColor: isActive
-                        ? const Color(0xff1DB32F)
-                        : Colors.grey.shade500,
+                    bgColor: status == "Active"
+                  ? const Color(0xff1DB32F) // Green for Active
+                  : status == "Draft"
+            ? Colors.orange // Orange for Draft
+                : status == "Closed"
+            ? Colors.red // Red for Closed
+                : Colors.grey.shade500, // Grey for Unknown
+                    // isActive
+                        // ? const Color(0xff1DB32F)
+                        // : Colors.grey.shade500,
                   ),
                 ),
                 const SizedBox(width: 15),
@@ -366,4 +374,16 @@ Widget numSeenContainer({required int nSeen}) {
       ],
     ),
   );
+}
+String getStatusText(int activeStatus) {
+  switch (activeStatus) {
+    case 0:
+      return "Draft";
+    case 1:
+      return "Active";
+    case 2:
+      return "Closed";
+    default:
+      return "Unknown";
+  }
 }

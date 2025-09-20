@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:job_portal/UI_Helper/responsive_extensions.dart';
 import 'package:job_portal/ui_helper/ui_helper.dart';
-import 'package:job_portal/views/Bottom_Nav_Bar/Recruiter_Bottom_Nav_Bar.dart';
 import 'package:job_portal/widgets/widgets.dart';
+import '../../../Bottom_Nav_Bar/University_Bottom_Nav_Bar.dart';
 import '../../../detailed_signup_student/domain/entities/metadata_entities.dart';
 import '../../../detailed_signup_student/presentation/bloc/master_data_bloc/master_data_bloc.dart';
 import '../../../detailed_signup_student/presentation/bloc/master_data_bloc/master_data_event.dart';
@@ -93,7 +93,7 @@ class _UniversityFillDetailsScreenState extends State<UniversityFillDetailsScree
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => RecruiterBottomNavBar(),
+          builder: (context) => UniversityBottomNavBar(),
         ),
       );
 

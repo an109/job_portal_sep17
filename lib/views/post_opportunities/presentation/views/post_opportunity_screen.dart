@@ -122,7 +122,6 @@ class _PostInternshipsScreenState extends State<PostInternshipsScreen> {
   @override
   void initState() {
     super.initState();
-    // Initialize all controllers - FIXED BUG
     _collegeNameController = TextEditingController();
     _screeningQuestionsController = TextEditingController();
     internshipProfileController = TextEditingController();
@@ -163,6 +162,56 @@ class _PostInternshipsScreenState extends State<PostInternshipsScreen> {
     maxSalaryController.dispose();
     alterPhoneController.dispose();
     super.dispose();
+  }
+
+  void createParamsForDraft() {
+    final map = {
+      "opportunity_type": jobTypes[selectedJobIndex ?? 0],
+      "job_role_id": 6,
+      "skillsRequired": buildCommaSeparatedString(requiredSkills),
+      "skill_required_note": '',
+      "job_type": internshipLocationTypes[selectedLocationIndex ?? 0],
+      "days_in_office": selectedLocationIndex == 1 ? selectedDay : null,
+      "job_time": selectedLocationIndex == 1 || selectedLocationIndex == 2
+          ? internshipDayTimingsTypes[selectedTimingIndex ?? 0]
+          : null,
+      "cityChoice": buildCommaSeparatedString(selectedCitiesList),
+      "number_of_openings": int.tryParse(noOpeningController.text.trim()) ?? 0,
+      "job_description": responsibilitiesController.text.trim(),
+      "candidate_preferences": preferencesController.text.trim(),
+      "women_preferred": isWomenAllowed,
+      "stipend_type": selectedJobIndex == 0 ? stipendTypes[selectedStipendIndex ?? 0] : null,
+      "stipend_min":
+      selectedJobIndex == 0 && selectedStipendIndex == 0 ? minStipendController.text.trim() : 0,
+      "stipend_max":
+      selectedJobIndex == 0 && selectedStipendIndex == 0 ? maxStipendController.text.trim() : 0,
+      "incentive_per_year": minIncentivesController.text.trim(),
+      "perks": selectedJobIndex == 0
+          ? sendOnlyTickedPerksForInternship()
+          : selectedJobIndex == 1
+          ? sendOnlyTickedPerksForJobs()
+          : '',
+      "screening_questions": _screeningQuestionsController.text,
+      "phone_contact": '',
+      "alternate_phone_number": alterPhoneController.text.trim(),
+      "internshipDuration": internshipDurationController.text.trim(),
+      "internship_start_date": selectedStartTimingIndex == 1
+          ? startDateController.text.trim()
+          : _getDefaultStartDate(),
+      "internship_from_date": selectedStartTimingIndex == 1
+          ? startDateController.text.trim()
+          : null,
+      "internship_to_date":
+      selectedStartTimingIndex == 1 ? endDateController.text.trim() : null,
+      "is_custom_internship_date": selectedStartTimingIndex == 1,
+      "college_name": _collegeNameController.text.trim(),
+      "course": selectedCourses.join(', '),
+      "active_status": 0,
+    };
+
+    developer.log('This is the draft post params : $map');
+
+    context.read<OpportunityBloc>().add(OpportunityCreateJobPost(map, activeStatus: 0));
   }
 
   String sendOnlyTickedPerksForInternship() {
@@ -223,11 +272,12 @@ class _PostInternshipsScreenState extends State<PostInternshipsScreen> {
       "is_custom_internship_date": selectedStartTimingIndex == 1,
       "college_name": _collegeNameController.text.trim(),
       "course": selectedCourses.join(', '),
+      // "active_status": 1,
     };
 
     developer.log('This is the opportunity post params : $map');
 
-    context.read<OpportunityBloc>().add(OpportunityCreateJobPost(map));
+    context.read<OpportunityBloc>().add(OpportunityCreateJobPost(map, activeStatus: 1));
   }
 
   @override
@@ -258,6 +308,13 @@ class _PostInternshipsScreenState extends State<PostInternshipsScreen> {
             });
             developer.log("Meta data : $metadata");
           } else if (state is OpportunityJobPostLoaded) {
+            if (state.isDraft) {
+              // Handle draft success
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Draft Saved Successfully!!!")),
+              );
+              Navigator.pop(context); // Or navigate to drafts list
+            } else {
             developer.log("✅ Navigation triggered!");
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text("Internship Posted Successfully!!!")),
@@ -267,7 +324,7 @@ class _PostInternshipsScreenState extends State<PostInternshipsScreen> {
               MaterialPageRoute(
                 builder: (context) => RecruiterBottomNavBar(),
               ),
-            );
+            );}
           } else if (state is OpportunityJobPostError) {
             showSnackbar('Some error occurred.', context);
           }
@@ -1284,7 +1341,10 @@ class _PostInternshipsScreenState extends State<PostInternshipsScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       InkWell(
-                        onTap: () {},
+                        onTap: () {
+          if (state is! OpportunityJobPostLoading) {
+          createParamsForDraft();}
+                        },
                         child: Container(
                           height: 40,
                           width: 100,

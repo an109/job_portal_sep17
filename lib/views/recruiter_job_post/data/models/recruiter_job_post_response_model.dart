@@ -35,6 +35,7 @@ class JobPostData {
   String? jobRole;
   String? status;
   int? views;
+  int? activeStatus;
   int? totalApplications;
   String? lastApplicationDate;
 
@@ -47,6 +48,7 @@ class JobPostData {
     this.jobRole,
     this.status,
     this.views,
+    this.activeStatus,
     this.totalApplications,
     this.lastApplicationDate,
     this.jobRoleId,
@@ -68,6 +70,7 @@ class JobPostData {
       // jobRole: _mapJobRoleFromId(json['job_role_id'] as int?, json['opportunityType'] as String?),
       status: json['status'] as String? ?? 'Active',
       views: json['views'] as int? ?? 0,
+      activeStatus: json['active_status'] as int? ?? 0,
       lastApplicationDate: json['lastApplicationDate'] as String?,
       // totalApplications: 0, // Default until fetched
       totalApplications: json['applicationCount'] as int? ?? 0,
@@ -89,6 +92,7 @@ class JobPostData {
     'totalApplications': totalApplications,
     'lastApplicationDate': lastApplicationDate,
     'jobRoleId': jobRoleId,
+    'active_status': activeStatus,
     'opportunityType': opportunityType,
     'internshipStartDate': internshipStartDate,
   };
@@ -96,6 +100,7 @@ class JobPostData {
   RecruiterJobPostEntity toEntity() {
     return RecruiterJobPostEntity(
       jobId: jobId ?? 0,
+      activeStatus: activeStatus ?? 0,
       jobRole: jobRole ?? "Untitled Job",
       status: status ?? "Unknown",
       views: views ?? 0,

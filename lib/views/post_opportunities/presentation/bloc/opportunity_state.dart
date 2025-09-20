@@ -49,12 +49,13 @@ class OpportunityJobPostLoading extends OpportunityState {
 
 class OpportunityJobPostLoaded extends OpportunityState {
   final InternshipMetadataEntity internshipMetadata;
+  final bool isDraft;
 
-  const OpportunityJobPostLoaded(this.internshipMetadata);
+  const OpportunityJobPostLoaded(this.internshipMetadata, {this.isDraft = false});
 
 
   @override
-  List<Object?> get props => [internshipMetadata];
+  List<Object?> get props => [internshipMetadata, isDraft];
 }
 
 class OpportunityJobPostError extends OpportunityState {

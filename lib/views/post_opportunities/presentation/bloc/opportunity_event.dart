@@ -23,9 +23,10 @@ class LoadMasterDataEvent extends OpportunityEvent {
 
 class OpportunityCreateJobPost extends OpportunityEvent {
   final Map<String, dynamic> params;
+  final int activeStatus;
 
-  const OpportunityCreateJobPost(this.params);
+  const OpportunityCreateJobPost(this.params, {this.activeStatus = 1});
 
   @override
-  List<Object?> get props => [params];
+  List<Object?> get props => [params, activeStatus];
 }

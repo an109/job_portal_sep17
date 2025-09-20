@@ -64,7 +64,11 @@ class OpportunityBloc extends Bloc<OpportunityEvent, OpportunityState> {
       OpportunityCreateJobPost event, Emitter<OpportunityState> emit) async {
     try {
       emit(const OpportunityJobPostLoading());
-      final response = await _createJobPostUsecase(params: event.params);
+      final paramsWithStatus = {
+        ...event.params,
+        'active_status': event.activeStatus,
+      };
+      final response = await _createJobPostUsecase(params: paramsWithStatus);
 
       print('>>> BLOC: Response is DataSuccess: ${response is DataSuccess}');
       print('>>> BLOC: Response data is not null: ${response.data != null}');

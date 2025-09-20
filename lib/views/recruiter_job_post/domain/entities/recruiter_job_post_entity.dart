@@ -4,6 +4,7 @@ class RecruiterJobPostEntity extends Equatable {
   final int jobId;
   final String jobRole;
   final String status;
+  final int activeStatus;
   final int views;
   final int totalApplications;
   final DateTime? lastApplicationDate;
@@ -12,6 +13,7 @@ class RecruiterJobPostEntity extends Equatable {
     required this.jobId,
     required this.jobRole,
     required this.status,
+    required this.activeStatus,
     required this.views,
     required this.totalApplications,
     this.lastApplicationDate,
