@@ -35,6 +35,10 @@ class _SignUpStudent1State extends State<SignUpStudent1> {
 
   @override
   Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+    final screenWidth = mediaQuery.size.width;
+    final screenHeight = mediaQuery.size.height;
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -43,7 +47,7 @@ class _SignUpStudent1State extends State<SignUpStudent1> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.06), // Responsive padding
           child: Form(
             key: _formKey,
             child: Column(
@@ -51,41 +55,41 @@ class _SignUpStudent1State extends State<SignUpStudent1> {
               children: [
                 Text("Sign Up",
                     style: TextStyle(color: const Color(0xff1A1C1E), fontWeight: FontWeight.w900, fontFamily: "Inter", fontSize: 53)),
-                mSpacer(),
+                SizedBox(height: screenHeight * 0.02), // Responsive spacing
                 Text("Create an account to continue!", style: TextStyle(fontSize: 16,fontWeight: FontWeight.w700 )),
-                mSpacer(mHeight: 24.0),
+                SizedBox(height: screenHeight * 0.03), // Responsive spacing
                 Text("First Name", style: TextStyle(fontSize: 15)),
+                SizedBox(height: screenHeight * 0.01), // Responsive spacing
                 CustomTextField(
                   controller: firstNameController,
                   hintText: "Aman",
                   suffixIcon: Icons.person,
-                  // fillColor: Colors.white,
                   validator: (value) => value == null || value.isEmpty
                       ? 'First name required'
                       : null,
                 ),
-                mSpacer(mHeight: 15.0),
+                SizedBox(height: screenHeight * 0.02), // Responsive spacing
                 Text("Last Name", style: TextStyle(fontSize: 15)),
+                SizedBox(height: screenHeight * 0.01), // Responsive spacing
                 CustomTextField(
                   controller: surnameController,
                   hintText: "Gupta",
-                  // fillColor: Color(0xffFFF7FB),
                   validator: (value) => value == null || value.isEmpty
                       ? 'Last name required'
                       : null,
                 ),
-                mSpacer(mHeight: 15.0),
+                SizedBox(height: screenHeight * 0.02), // Responsive spacing
                 Text("Phone Number", style: TextStyle(fontSize: 15)),
                 CustomPhoneField(
                   controller: phoneController,
                 ),
-                mSpacer(mHeight: 0.0),
+                SizedBox(height: screenHeight * 0.01), // Responsive spacing
                 Text("Email", style: TextStyle(fontSize: 15)),
+                SizedBox(height: screenHeight * 0.01), // Responsive spacing
                 CustomTextField(
                   controller: emailController,
                   hintText: "abc@gmail.com" ,
                   suffixIcon: Icons.email,
-                  // fillColor: Color(0xffFFF7FB),
                   validator: (value) {
                     if (value == null || value.isEmpty) return 'Email required';
                     if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value))
@@ -94,8 +98,9 @@ class _SignUpStudent1State extends State<SignUpStudent1> {
                   },
                 ),
 
-                mSpacer(mHeight: 15.0),
+                SizedBox(height: screenHeight * 0.02), // Responsive spacing
                 Text("Password", style: TextStyle(fontSize: 15)),
+                SizedBox(height: screenHeight * 0.01), // Responsive spacing
                 CustomTextField(
                   controller: passwordController,
                   hintText: "∗∗∗∗∗∗∗∗∗∗",
@@ -118,7 +123,7 @@ class _SignUpStudent1State extends State<SignUpStudent1> {
                     return null;
                   },
                 ),
-                mSpacer(),
+                SizedBox(height: screenHeight * 0.02), // Responsive spacing
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -138,7 +143,7 @@ class _SignUpStudent1State extends State<SignUpStudent1> {
                             child: Text(
                               "By signing up, you agree to our ",
                               style: TextStyle(fontSize: 15),
-                              overflow: TextOverflow.ellipsis, // prevents overflow
+                              overflow: TextOverflow.ellipsis,
                               maxLines: 1,
                             ),
                           ),
@@ -151,10 +156,10 @@ class _SignUpStudent1State extends State<SignUpStudent1> {
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(16),
                                     ),
-                                    insetPadding: const EdgeInsets.all(16),
+                                    insetPadding: EdgeInsets.all(screenWidth * 0.04), // Responsive padding
                                     child: SizedBox(
-                                      height: MediaQuery.of(context).size.height * 0.7,
-                                      width: MediaQuery.of(context).size.width * 0.9,
+                                      height: screenHeight * 0.7, // Responsive height
+                                      width: screenWidth * 0.9, // Responsive width
                                       child: const UserTermsAndConditionsScreen(),
                                     ),
                                   );
@@ -177,9 +182,7 @@ class _SignUpStudent1State extends State<SignUpStudent1> {
                   ],
                 ),
 
-
-
-                mSpacer(),
+                SizedBox(height: screenHeight * 0.02), // Responsive spacing
                 BlocListener<RemoteSignupBloc, RemoteSignupState>(
                   listener: (context, state) {
                     if (state is RemoteSignupError) {
@@ -188,17 +191,8 @@ class _SignUpStudent1State extends State<SignUpStudent1> {
                     } else if (state is RemoteSignupDone) {
                       final data = state.signUpUserResponse;
 
-                      // developer.log(data.message);
-
                       if (data.message == 'Email already exists') {
                         showSnackbar('Email already exists', context);
-                        // this is for temp testing of send otp api
-                        // Map<String, dynamic> emailMap = {
-                        //   'email': emailController.text.trim()
-                        // };
-                        // context
-                        //     .read<RemoteSignupBloc>()
-                        //     .add(RemoteSingupSendOtpEmail(emailMap));
                       } else {
                         Map<String, dynamic> emailMap = {};
                         if (data.user != null) {
@@ -211,11 +205,6 @@ class _SignUpStudent1State extends State<SignUpStudent1> {
                         context
                             .read<RemoteSignupBloc>()
                             .add(RemoteSingupSendOtpEmail(emailMap));
-                        // commented cuz adding send otp email call here.
-                        // showSnackbar('Please verify email.', context);
-                        // Navigator.of(context).push(MaterialPageRoute(
-                        //     builder: (context) => SignUpStudent_2(
-                        //         Email: emailController.text.trim())));
                       }
                     } else if (state is RemoteSignupSendOtpEmailDone) {
                       final data = state.sendOtp;
@@ -266,18 +255,18 @@ class _SignUpStudent1State extends State<SignUpStudent1> {
                         );
                       }
                     }
-                        : null, // disable when not checked
+                        : null,
                   ),
                 ),
 
-                mSpacer(mHeight: 20.0),
+                SizedBox(height: screenHeight * 0.025), // Responsive spacing
                 dividerLine(),
-                mSpacer(),
+                SizedBox(height: screenHeight * 0.02), // Responsive spacing
                 belowBars(
                   text: "Sign up with Google",
                   imgUrl: "assets/Icons/google.svg",
                 ),
-                mSpacer(mHeight: 40.0),
+                SizedBox(height: screenHeight * 0.05), // Responsive spacing
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -299,7 +288,7 @@ class _SignUpStudent1State extends State<SignUpStudent1> {
                     )
                   ],
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: screenHeight * 0.025), // Responsive spacing
               ],
             ),
           ),

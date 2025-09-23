@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:job_portal/utils/theme/custom_themes/color_theme.dart';
 
+import '../../../../Widgets/sign_in.dart';
 import '../../../../ui_helper/ui_helper.dart';
 import '../../../../widgets/widgets.dart';
 import '../../../job_related/presentation/views/job_search_view.dart';
@@ -39,7 +40,7 @@ class _EnterEmailOTpScreen extends State<EnterEmailOTpScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            signInHeader(
+            SignInHeader(
               onTap: () {
                 Navigator.pushReplacement(
                   context,

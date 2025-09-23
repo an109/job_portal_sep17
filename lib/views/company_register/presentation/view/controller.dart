@@ -46,7 +46,7 @@ class CompanyProfileController extends GetxController {
       isLoading.value = true;
 
       final response = await dioClient.instance.post(
-        "https://leafyscape.com/api/company-recruiter/profile",
+        "http://bvrcrafts.com:5000/api/company-recruiter/profile",
         data: request.toJson(),
       );
 

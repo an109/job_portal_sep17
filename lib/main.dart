@@ -9,6 +9,7 @@ import 'package:job_portal/views/Common_Screens/presentation/bloc/forgot_passwor
 import 'package:job_portal/views/Recruiter_Profile_Screens/Recruiter_profile_Screen2.dart';
 import 'package:job_portal/views/Recruiter_Profile_Screens/presentation/bloc/Recruiter_update_profile_bloc.dart';
 import 'package:job_portal/views/University_profile_screen/presentation/bloc/university_profile_bloc.dart';
+import 'package:job_portal/views/University_public_profile/presentation/bloc/university_public_profile_bloc.dart';
 import 'package:job_portal/views/company_register/presentation/bloc/company_register_bloc.dart';
 import 'package:job_portal/views/detailed_signup_student/presentation/bloc/master_data_bloc/master_data_bloc.dart';
 import 'package:job_portal/views/detailed_signup_student/presentation/bloc/signup_as_anyone_bloc/detailed_signup_bloc.dart';
@@ -99,6 +100,7 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (_) => sl<UserEducationApprovalBloc>()),
         BlocProvider(create: (_) => sl<UniversityRegistrationBloc>()),
         BlocProvider(create: (_) => sl<UniversityProfileBloc>()),
+        BlocProvider(create: (_) => sl<UniversityPublicProfileBloc>()),
 
       ],
       child: GetMaterialApp(

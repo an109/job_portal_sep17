@@ -66,6 +66,25 @@ class PreferencesManager {
   String? getUserType() {
     return _prefs.getString(USER_TYPE);
   }
+  static const UNIVERSITY_PROFILE = "university_profile";
+
+  Future<void> setUniversityProfile(Map<String, dynamic> profile) async {
+    final profileString = jsonEncode(profile);
+    await _prefs.setString(UNIVERSITY_PROFILE, profileString);
+  }
+
+  Map<String, dynamic>? getUniversityProfile() {
+    final profileString = _prefs.getString(UNIVERSITY_PROFILE);
+    if (profileString != null) {
+      return jsonDecode(profileString);
+    }
+    return null;
+  }
+  Future<void> clearAll() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+  }
+
 
   Future<void> clear(String key) async {
     await _prefs.remove(key);

@@ -15,6 +15,7 @@ import 'package:job_portal/views/login/presentation/bloc/remote_login_bloc.dart'
 import 'package:job_portal/views/login/presentation/bloc/remote_login_event.dart';
 import 'package:job_portal/views/login/presentation/bloc/remote_login_state.dart';
 import 'package:job_portal/widgets/widgets.dart';
+import '../../../../Widgets/sign_in.dart';
 import '../../../signup_student/presentation/views/create_account.dart';
 import 'package:job_portal/views/signup_recruiter/presentation/views/recruiter_verify_email_view.dart';
 import 'package:job_portal/views/signup_student/presentation/views/signup_student2_view.dart';
@@ -145,7 +146,7 @@ class _LoginWithEmailOtpScreen extends State<LoginWithEmailOtpScreen> {
         },
         child: Column(
           children: [
-            signInHeader(
+            SignInHeader(
               onTap: () {
                 Navigator.push(
                   context,

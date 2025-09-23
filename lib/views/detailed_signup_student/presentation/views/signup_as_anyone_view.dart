@@ -118,31 +118,6 @@ class _SignInPageUniversityStudentState extends State<SignupAsAnyOne> {
           child: Material(
             elevation: 2,
             borderRadius: BorderRadius.circular(8),
-            // child: BlocBuilder<CollegeBloc, CollegeState>(
-            //   builder: (context, state) {
-            //     if (state is CollegeLoading) {
-            //       return const CircularProgressIndicator();
-            //     } else if (state is CollegeLoaded) {
-            //       return ListView(
-            //         shrinkWrap: true,
-            //         children: state.colleges.map((name) {
-            //           return ListTile(
-            //             visualDensity: VisualDensity(vertical: -4),
-            //             title: Text(name),
-            //             onTap: () {
-            //               collegeController.text = name;
-            //               _collegeOverLayEntry?.remove();
-            //               _collegeOverLayEntry = null;
-            //             },
-            //           );
-            //         }).toList(),
-            //       );
-            //     } else if (state is CollegeError) {
-            //       return Text(state.message);
-            //     }
-            //     return const SizedBox.shrink();
-            //   },
-            // ),
           ),
         ),
       ),
@@ -1336,7 +1311,7 @@ class _SignInPageUniversityStudentState extends State<SignupAsAnyOne> {
       widget.params["current_location_id"] = selectedCurrentCity.toString();
     }
     if (selectedPreferredCity != null) {
-      widget.params["preferred_location_id"] = selectedPreferredCity.toString(); // Adjust key if needed
+      widget.params["preferred_location_id"] = selectedPreferredCity.toString();
     }
 
     // Type-specific data

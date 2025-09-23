@@ -16,15 +16,21 @@ class MasterDataBloc extends Bloc<MasterDataEvent, MasterDataState> {
       LoadMasterData event, Emitter<MasterDataState> emit) async {
     emit(MasterDataLoading());
     try {
-      final response = await dio.get("https://leafyscape.com/api/master/all");
+      final response = await dio.get("http://bvrcrafts.com:5000/api/master/all");
+      // ✅ MINIMAL FIX: Check if response.data is Map, else throw meaningful error
+      if (response.data is! Map<String, dynamic>) {
+        throw Exception('Invalid response format: ${response.data}');
+      }
+
       final masterData = MasterDataResponse.fromJson(response.data);
+
 
       // Map backend companies to your entity
       final companies = masterData.data.companies
           .map((c) => CompanyEntity(id: c.id, name: c.name))
           .toList();
 
-
+      print('📡 API Response: ${response.data}');
       emit(MasterDataLoaded(
         locations: masterData.data.locations,
         jobLocations: [], // if your API has job_locations, map them here

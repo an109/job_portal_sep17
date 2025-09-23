@@ -32,6 +32,10 @@ class _SignupUniversityViewState extends State<SignupUniversityView> {
 
   @override
   Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+    final screenWidth = mediaQuery.size.width;
+    final screenHeight = mediaQuery.size.height;
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -40,7 +44,7 @@ class _SignupUniversityViewState extends State<SignupUniversityView> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.06), // Responsive padding
           child: Form(
             key: _formKey,
             child: Column(
@@ -55,15 +59,16 @@ class _SignupUniversityViewState extends State<SignupUniversityView> {
                     fontSize: 53,
                   ),
                 ),
-                mSpacer(),
+                SizedBox(height: screenHeight * 0.02), // Responsive spacing
                 Text(
                   "Create an account to continue!",
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
                 ),
-                mSpacer(mHeight: 24.0),
+                SizedBox(height: screenHeight * 0.03), // Responsive spacing
 
                 // First Name
                 Text("First Name", style: TextStyle(fontSize: 15)),
+                SizedBox(height: screenHeight * 0.01), // Responsive spacing
                 CustomTextField(
                   controller: firstNameController,
                   hintText: "Aman",
@@ -71,27 +76,29 @@ class _SignupUniversityViewState extends State<SignupUniversityView> {
                   validator: (value) =>
                   value == null || value.isEmpty ? 'First name required' : null,
                 ),
-                mSpacer(mHeight: 15.0),
+                SizedBox(height: screenHeight * 0.02), // Responsive spacing
 
                 // Last Name
                 Text("Last Name", style: TextStyle(fontSize: 15)),
+                SizedBox(height: screenHeight * 0.01), // Responsive spacing
                 CustomTextField(
                   controller: surnameController,
                   hintText: "Gupta",
                   validator: (value) =>
                   value == null || value.isEmpty ? 'Last name required' : null,
                 ),
-                mSpacer(mHeight: 15.0),
+                SizedBox(height: screenHeight * 0.02), // Responsive spacing
 
                 // Phone Number
                 Text("Phone Number", style: TextStyle(fontSize: 15)),
                 CustomPhoneField(
                   controller: phoneController,
                 ),
-                mSpacer(mHeight: 0.0),
+                SizedBox(height: screenHeight * 0.01), // Responsive spacing
 
                 // Email
                 Text("Email", style: TextStyle(fontSize: 15)),
+                SizedBox(height: screenHeight * 0.01), // Responsive spacing
                 CustomTextField(
                   controller: emailController,
                   hintText: "abc@gmail.com",
@@ -103,10 +110,11 @@ class _SignupUniversityViewState extends State<SignupUniversityView> {
                     return null;
                   },
                 ),
-                mSpacer(mHeight: 15.0),
+                SizedBox(height: screenHeight * 0.02), // Responsive spacing
 
                 // Password
                 Text("Password", style: TextStyle(fontSize: 15)),
+                SizedBox(height: screenHeight * 0.01), // Responsive spacing
                 CustomTextField(
                   controller: passwordController,
                   hintText: "∗∗∗∗∗∗∗∗∗∗",
@@ -129,7 +137,7 @@ class _SignupUniversityViewState extends State<SignupUniversityView> {
                     return null;
                   },
                 ),
-                mSpacer(),
+                SizedBox(height: screenHeight * 0.02), // Responsive spacing
 
                 // Terms and Conditions Checkbox
                 Row(
@@ -164,11 +172,10 @@ class _SignupUniversityViewState extends State<SignupUniversityView> {
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(16),
                                     ),
-                                    insetPadding: const EdgeInsets.all(16),
+                                    insetPadding: EdgeInsets.all(screenWidth * 0.04), // Responsive padding
                                     child: SizedBox(
-                                      height:
-                                      MediaQuery.of(context).size.height * 0.7,
-                                      width: MediaQuery.of(context).size.width * 0.9,
+                                      height: screenHeight * 0.7, // Responsive height
+                                      width: screenWidth * 0.9, // Responsive width
                                       child: const UserTermsAndConditionsScreen(),
                                     ),
                                   );
@@ -191,7 +198,7 @@ class _SignupUniversityViewState extends State<SignupUniversityView> {
                   ],
                 ),
 
-                mSpacer(),
+                SizedBox(height: screenHeight * 0.02), // Responsive spacing
 
                 // BlocListener and Register Button
                 BlocListener<RemoteSignupBloc, RemoteSignupState>(
@@ -238,9 +245,6 @@ class _SignupUniversityViewState extends State<SignupUniversityView> {
                       showSnackbar(
                           'Some error occured while sending otp. Please try resending otp.',
                           context);
-                      // Navigator.of(context).push(MaterialPageRoute(
-                      //     builder: (context) => VerifyUniversityEmail(
-                      //         email: emailController.text.trim())));
                     }
                   },
                   child: commonRedContainer(
@@ -254,13 +258,12 @@ class _SignupUniversityViewState extends State<SignupUniversityView> {
                           "email": emailController.text.trim(),
                           "phone": phoneController.text.trim(),
                           "password": passwordController.text,
-                          "user_role": "university", // or your user role for university
+                          "user_role": "university",
                         };
 
                         context
                             .read<RemoteSignupBloc>()
                             .add(RemoteSignupData(body));
-                        // Navigate to VerifyUniversityEmail after signup
                         Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (context) => VerifyUniversityEmail(
@@ -274,17 +277,17 @@ class _SignupUniversityViewState extends State<SignupUniversityView> {
                   ),
                 ),
 
-                mSpacer(mHeight: 20.0),
+                SizedBox(height: screenHeight * 0.025), // Responsive spacing
 
                 dividerLine(),
-                mSpacer(),
+                SizedBox(height: screenHeight * 0.02), // Responsive spacing
 
                 belowBars(
                   text: "Sign up with Google",
                   imgUrl: "assets/Icons/google.svg",
                 ),
 
-                mSpacer(mHeight: 40.0),
+                SizedBox(height: screenHeight * 0.05), // Responsive spacing
 
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -307,7 +310,7 @@ class _SignupUniversityViewState extends State<SignupUniversityView> {
                     )
                   ],
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: screenHeight * 0.025), // Responsive spacing
               ],
             ),
           ),

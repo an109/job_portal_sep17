@@ -1,7 +1,8 @@
 // base url and other const data
 
 class Urls {
-  static const baseurlIP = "https://leafyscape.com/";
+  // static const baseurlIP = "https://leafyscape.com/";
+  static const baseurlIP = "http://bvrcrafts.com:5000/";
   static String placeHolderImage = 'assets/Images/placeholder_image.jpg';
   static const baseUrl = "${baseurlIP}api/";
 
@@ -46,6 +47,9 @@ class Urls {
   static const changePassword = "users/changePassword";
   static const resetPasswordWithOTP = "users/resetPasswordWithOtp";
 
+  static const String getUniFollowers = 'feed/{user_id}/followers';
+  static const String getUniFollowing = 'feed/{user_id}/following';
+
   // Job Posts
   static const String getJobPostsList = "jobpost/list";
   static const String getTotalJobPostCount = "jobpost/totalcount";
@@ -84,6 +88,10 @@ class Urls {
 
   static const String updateRecruiterProfile = "company-recruiter/profile";
 
+  static const String unipublicprofile = "university/{user_id}";
+
+  static const String placeHolderImagePath = 'assets/Images/placeholder_image.jpg';
+
   static String getFullImageUrl(String? relativePath) {
     if (relativePath == null || relativePath.isEmpty) {
       return placeHolderImage;
@@ -93,6 +101,14 @@ class Urls {
         return placeHolderImage;
       }
       return relativePath;
+    }
+    // Handle local device paths (Android/iOS cache)
+    if (relativePath.startsWith('/data/') ||
+        relativePath.startsWith('/storage/') ||
+        relativePath.startsWith('file://') ||
+        relativePath.contains('com.example.job_portal')) {
+     print('Local file path detected, returning null (placeholder): $relativePath');
+      return placeHolderImage; // Will show placeholder
     }
     String cleanPath = relativePath.startsWith('/')
         ? relativePath.substring(1)

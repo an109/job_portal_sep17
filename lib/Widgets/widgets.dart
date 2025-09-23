@@ -98,37 +98,6 @@ Widget signInHeader({required VoidCallback onTap}) {
   );
 }
 
-/// FORGET PASSWORD ROW
-// Widget forgetPassRow(
-//     {required VoidCallback ontap, required VoidCallback onTapRemMe}) {
-//   return Row(
-//     children: [
-//       Container(
-//         height: 11.08,
-//         width: 11.08,
-//         decoration: BoxDecoration(
-//             borderRadius: BorderRadius.circular(2),
-//             border: Border.all(color: Color(0xff6C7278), width: 1)),
-//       ),
-//       SizedBox(
-//         width: 6.0,
-//       ),
-//       Text(
-//         "Remember me",
-//         style: mTextStyle14(),
-//       ),
-//       Spacer(),
-//       InkWell(
-//           onTap: ontap,
-//           child: Text(
-//             "Forgot Password?",
-//             style: mTextStyle14(
-//                 mColor: AppColors.blueTextColor, mFontWeight: FontWeight.w600),
-//           )),
-//     ],
-//   );
-// }
-
 class RememberMeRow extends StatefulWidget {
   final VoidCallback onForgotPasswordTap;
   final ValueChanged<bool> onRememberMeChanged;

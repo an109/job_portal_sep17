@@ -449,7 +449,7 @@ class _RecruiterProfileScreen2State extends State<RecruiterProfileScreen2> {
         });
 
         final response = await uploadUseCase.call(params: {'formdata': formData});
-        const String baseUrl = "https://leafyscape.com/api/";
+        const String baseUrl = "http://bvrcrafts.com:5000/api/";
 
         if (response != null && response.data != null && response.data!.url.isNotEmpty) {
           String uploadedUrl = response.data!.url[0].toString();

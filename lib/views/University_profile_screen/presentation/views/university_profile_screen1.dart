@@ -9,6 +9,7 @@ import 'package:job_portal/views/University_profile_screen/presentation/views/un
 import 'package:job_portal/views/login/presentation/views/login_page_first_view.dart';
 
 import '../../../../UI_Helper/UI_Helper.dart';
+import '../../../University_public_profile/presentation/views/university_public_profile_screen.dart';
 import '../../../user_profile/presentation/views/User_Notifications_Screen.dart';
 import '../../../user_profile/presentation/views/User_messages_screen.dart';
 import '../../../user_profile/presentation/views/change_email_password_views/User_change_password_screen.dart';
@@ -82,46 +83,91 @@ class _UniversityProfilescreen1State extends State<UniversityProfilescreen1> {
                 decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(5),
                     color: TColors.primary),
-                child: Row(children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 18.0),
-                    child: Container(
-                      height: 58,
-                      width: 58,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(25),
-                      ),
-                      child: _getProfileImage(prefs),
-                    ),
-                  ),
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width - 150, // Adjust as needed
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 28.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            prefs.getString(PreferencesManager.USER_NAME) ?? 'Recruiter Name',
-                            style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          Text(
-                            prefs.getString(PreferencesManager.USER_EMAIL) ?? 'recruiter@email.com',
-                            style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w400,
-                                color: Colors.white),
-                            overflow: TextOverflow.ellipsis,
-                          )
-                        ],
+                child: Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 18.0),
+                      child: Container(
+                        height: 60,
+                        width: 60,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                        child: _getProfileImage(prefs),
                       ),
                     ),
-                  ),
-                ]),
+                    Expanded( // Use Expanded instead of Flexible
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 28.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              prefs.getString(PreferencesManager.USER_NAME) ?? 'Recruiter Name',
+                              style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            ),
+                            Text(
+                              prefs.getString(PreferencesManager.USER_EMAIL) ?? 'recruiter@email.com',
+                              style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w400,
+                                  color: Colors.white),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            )
+                          ],
+                        ),
+                      ),
+                    ),
+                    // Add a small spacer if needed
+                    SizedBox(width: 6),
+                    IconButton(
+                      icon: Icon(Icons.remove_red_eye, color: Colors.white, size: 26),
+                      onPressed: () {
+                        final prefs = sl<PreferencesManager>();
+                        final userId = prefs.getUserId();
+
+                        if (userId != null && userId.isNotEmpty) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => UniversityPublicProfileScreen(
+                                userId: int.tryParse(userId) ?? 152,
+                              ),
+                            ),
+                          );
+                        } else {
+                          // Handle case where user ID is not available
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('User ID not available')),
+                          );
+                        }
+                      },
+                      padding: EdgeInsets.all(6),
+                      constraints: BoxConstraints(),
+                      tooltip: 'View Public Profile',
+                    ),
+                    // IconButton(
+                    //   icon: Icon(Icons.remove_red_eye, color: Colors.white, size: 26),
+                    //   onPressed: () {
+                    //     Navigator.push(
+                    //       context,
+                    //       MaterialPageRoute(
+                    //         builder: (context) => UniversityPublicProfileScreen(userId: 152),
+                    //       ),
+                    //     );
+                    //   },
+                    //   padding: EdgeInsets.all(6),
+                    //   constraints: BoxConstraints(),
+                    //   tooltip: 'View Public Profile',
+                    // ),
+                  ],
+                ),
               ),
               SizedBox(
                 height: 10,
@@ -241,7 +287,7 @@ class _UniversityProfilescreen1State extends State<UniversityProfilescreen1> {
                         onTap: () {
                           final _prefs = sl<PreferencesManager>();
 
-                          _prefs.clear('recruiter_profile_pic');
+                          _prefs.clear('university_profile_pic');
 
                           _prefs.clear(PreferencesManager.USER_TYPE);
                           _prefs.clear(PreferencesManager.TOKEN);
@@ -311,26 +357,9 @@ Widget UserProfileEnteries(
     ),
   );
 }
-// Widget _getProfileImage(PreferencesManager prefs) {
-//   final profilePicPath = prefs.getString('recruiter_profile_pic') ?? '';
-//
-//   if (profilePicPath.isNotEmpty) {
-//     return ClipRRect(
-//       borderRadius: BorderRadius.circular(25),
-//       child: Image.network(
-//         profilePicPath,
-//         fit: BoxFit.cover,
-//         errorBuilder: (context, error, stackTrace) {
-//           return SvgPicture.asset("assets/Icons/profile_icon.svg");
-//         },
-//       ),
-//     );
-//   } else {
-//     return SvgPicture.asset("assets/Icons/profile_icon.svg");
-//   }
-// }
+
 Widget _getProfileImage(PreferencesManager prefs) {
-  final profilePicPath = prefs.getString('recruiter_profile_pic') ?? '';
+  final profilePicPath = prefs.getString('university_profile_pic') ?? '';
 
   if (profilePicPath.isEmpty) {
     return SvgPicture.asset("assets/Icons/profile_icon.svg");

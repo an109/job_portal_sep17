@@ -12,7 +12,7 @@ part of 'login_api_service.dart';
 
 class _LoginApiService implements LoginApiService {
   _LoginApiService(this._dio, {this.baseUrl, this.errorLogger}) {
-    baseUrl ??= 'https://leafyscape.com/api/';
+    baseUrl ??= 'http://bvrcrafts.com:5000/api/';
   }
 
   final Dio _dio;

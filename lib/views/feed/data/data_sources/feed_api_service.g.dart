@@ -12,7 +12,7 @@ part of 'feed_api_service.dart';
 
 class _FeedApiService implements FeedApiService {
   _FeedApiService(this._dio, {this.baseUrl, this.errorLogger}) {
-    baseUrl ??= 'https://leafyscape.com/api/';
+    baseUrl ??= 'http://bvrcrafts.com:5000/api/';
   }
 
   final Dio _dio;

@@ -23,6 +23,11 @@ import 'package:job_portal/views/University_profile_screen/data/repository/unive
 import 'package:job_portal/views/University_profile_screen/domain/repository/university_profile_repository.dart';
 import 'package:job_portal/views/University_profile_screen/domain/usecases/university_profile_usecase.dart';
 import 'package:job_portal/views/University_profile_screen/presentation/bloc/university_profile_bloc.dart';
+import 'package:job_portal/views/University_public_profile/data/data_source/university_public_profile_api_service.dart';
+import 'package:job_portal/views/University_public_profile/data/repository/university_public_profile_repository_impl.dart';
+import 'package:job_portal/views/University_public_profile/domain/repository/university_public_profile_repository.dart';
+import 'package:job_portal/views/University_public_profile/domain/usecases/university_public_profile_usecase.dart';
+import 'package:job_portal/views/University_public_profile/presentation/bloc/university_public_profile_bloc.dart';
 import 'package:job_portal/views/company_register/data/data_sources/company_register_api_service.dart';
 import 'package:job_portal/views/company_register/data/repository/company_register_response_impl.dart';
 import 'package:job_portal/views/company_register/domain/repository/company_register_repository.dart';
@@ -120,6 +125,11 @@ import 'package:job_portal/views/signup_university/data/repository/university_si
 import 'package:job_portal/views/signup_university/domain/repository/university_signup_repository.dart';
 import 'package:job_portal/views/signup_university/domain/usecase/university_signup_usecase.dart';
 import 'package:job_portal/views/signup_university/presentation/blocs/university_signup_bloc.dart';
+import 'package:job_portal/views/university_followers_following/data/data_source/university_followers_following_api_service.dart';
+import 'package:job_portal/views/university_followers_following/data/repository/university_followers_following_repository_impl.dart';
+import 'package:job_portal/views/university_followers_following/domain/repository/university_followers_following_repository.dart';
+import 'package:job_portal/views/university_followers_following/domain/usecases/university_followers_following_usecase.dart';
+import 'package:job_portal/views/university_followers_following/presentation/bloc/university_followers_following_bloc.dart';
 import 'package:job_portal/views/university_register/data/data_source/university_registration_api_service.dart';
 import 'package:job_portal/views/university_register/data/repository/university_registration_repository_impl.dart';
 import 'package:job_portal/views/university_register/domain/repository/university_registration_repository.dart';
@@ -245,6 +255,13 @@ Future<void> initializeDependencies() async {
   sl.registerSingleton<UniversityProfileApiService>(
       UniversityProfileApiService(sl<DioClient>().instance)
   );
+  sl.registerSingleton<UniversityPublicProfileApiService>(
+      UniversityPublicProfileApiService(sl<DioClient>().instance)
+  );
+  sl.registerSingleton<UniversityFollowersFollowingApiService>(
+    UniversityFollowersFollowingApiService(sl<DioClient>().instance),
+  );
+
 
 
   // Blocs
@@ -319,6 +336,15 @@ Future<void> initializeDependencies() async {
   sl.registerFactory<UserEducationApprovalBloc>(() => UserEducationApprovalBloc(sl()));
   sl.registerFactory<UniversityRegistrationBloc>(() => UniversityRegistrationBloc(sl()));
   sl.registerFactory<UniversityProfileBloc>(() => UniversityProfileBloc(sl()));
+  // sl.registerFactory<UniversityPublicProfileBloc>(() => UniversityPublicProfileBloc(sl()));
+  sl.registerFactory<UniversityPublicProfileBloc>(
+        () => UniversityPublicProfileBloc(sl<UniversityPublicProfileUseCase>()),
+  );
+  sl.registerFactory<UniversityFollowersFollowingBloc>(
+          () => UniversityFollowersFollowingBloc(
+        sl<GetFollowersUseCase>(),
+        sl<GetFollowingUseCase>(),
+      ),);
 
 
 
@@ -424,6 +450,14 @@ Future<void> initializeDependencies() async {
           () => RegisterUniversityUseCase(sl()));
   sl.registerLazySingleton<UpdateUniversityProfileUseCase>(
           () => UpdateUniversityProfileUseCase(sl()));
+  sl.registerLazySingleton<UniversityPublicProfileUseCase>(
+          () => UniversityPublicProfileUseCase(sl()));
+  sl.registerLazySingleton<GetFollowersUseCase>(
+        () => GetFollowersUseCase(sl()),
+  );
+  sl.registerLazySingleton<GetFollowingUseCase>(
+        () => GetFollowingUseCase(sl()),
+  );
 
 
 
@@ -494,6 +528,12 @@ Future<void> initializeDependencies() async {
   );
   sl.registerSingleton<UniversityProfileRepository>(
       UniversityProfileRepositoryImpl(sl())
+  );
+  sl.registerSingleton<UniversityPublicProfileRepository>(
+      UniversityPublicProfileRepositoryImpl(sl())
+  );
+  sl.registerLazySingleton<UniversityFollowersFollowingRepository>(
+        () => UniversityFollowersFollowingRepositoryImpl(sl()),
   );
 
 }

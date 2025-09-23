@@ -14,6 +14,7 @@ class UniversityProfileBloc extends Bloc<UniversityProfileEvent, UniversityProfi
 
     });
 
+
     on<SaveUniversityProfile>((event, emit) async {
       emit( UniversityProfileLoading());
       try {

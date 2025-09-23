@@ -16,6 +16,7 @@ import 'package:job_portal/views/login/presentation/bloc/remote_login_state.dart
 import 'package:job_portal/views/signup_recruiter/presentation/views/recruiter_verify_email_view.dart';
 import 'package:job_portal/views/signup_student/presentation/views/signup_student2_view.dart';
 import 'package:job_portal/views/signup_university/presentation/views/verify_university_email.dart';
+import '../../../../Widgets/sign_in.dart';
 import '../../../../ui_helper/ui_helper.dart';
 import '../../../../widgets/widgets.dart';
 import '../../../Bottom_Nav_Bar/Recruiter_Bottom_Nav_Bar.dart';
@@ -44,7 +45,7 @@ class _SignInPage_1State extends State<LogInPage1> {
 
   Future<void> sendOtpEmail(String email) async {
     final response = await http.post(
-      Uri.parse('https://leafyscape.com/api/otp/send-otp'),
+      Uri.parse('http://bvrcrafts.com:5000/api/otp/send-otp'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'email': email}),
     );
@@ -57,32 +58,32 @@ class _SignInPage_1State extends State<LogInPage1> {
 
   @override
   Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+    final screenWidth = mediaQuery.size.width;
+    final screenHeight = mediaQuery.size.height;
+    final isPortrait = mediaQuery.orientation == Orientation.portrait;
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        // foregroundColor: Colors.transparent,
-        // surfaceTintColor: Colors.transparent,
-        // shadowColor: Colors.transparent,
         centerTitle: false,
         title: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10.0),
+          padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.03),
           child: SvgPicture.asset(
             ImageString.jobPortalLogo,
-            height: 30,
-            // width: 40,
+            height: screenHeight * 0.03,
             fit: BoxFit.contain,
             allowDrawingOutsideViewBox: true,
           ),
         ),
         backgroundColor: TColors.primary,
-        // backgroundColor: TColors.primary,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              signInHeader(
+              SignInHeader(
                 onTap: () {
                   Navigator.push(
                     context,
@@ -92,15 +93,19 @@ class _SignInPage_1State extends State<LogInPage1> {
                   );
                 },
               ),
+
               mSpacer(),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                padding: EdgeInsets.symmetric(
+                  horizontal: screenWidth * 0.06, // Responsive padding
+                ),
                 child: Form(
                   key: _formKey,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text("Email", style: mTextStyle14()),
+                      SizedBox(height: screenHeight * 0.01),
                       CustomTextField(
                         controller: emailController,
                         hintText: "abc@gmail.com",
@@ -114,15 +119,15 @@ class _SignInPage_1State extends State<LogInPage1> {
                           return null;
                         },
                       ),
-                      mSpacer(mHeight: 16.0),
+                      SizedBox(height: screenHeight * 0.02),
                       Text("Password", style: mTextStyle14()),
+                      SizedBox(height: screenHeight * 0.01),
                       CustomTextField(
                         controller: passwordController,
                         hintText: "*******",
                         suffixIcon: Icons.visibility_off_outlined,
                         fillColor: Colors.white,
                         isPasswordField: true,
-                        // isObscure: true,
                         obscureText: true,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -133,7 +138,7 @@ class _SignInPage_1State extends State<LogInPage1> {
                           return null;
                         },
                       ),
-                      mSpacer(mHeight: 16.0),
+                      SizedBox(height: screenHeight * 0.02),
                       RememberMeRow(
                         onForgotPasswordTap: () {
                           Navigator.push(
@@ -151,10 +156,9 @@ class _SignInPage_1State extends State<LogInPage1> {
                           print("Remember me: $rememberMeValue");
                         },
                       ),
-                      mSpacer(mHeight: 30.0),
+                      SizedBox(height: screenHeight * 0.04),
                       BlocListener<RemoteLoginBloc, RemoteLoginState>(
                         listener: (context, state) async {
-
                           if (state is RemoteLoginError) {
                             showSnackbar('There was an error logging in.', context);
                           } else if (state is RemoteLoginLoaded) {
@@ -175,7 +179,7 @@ class _SignInPage_1State extends State<LogInPage1> {
                                 return;
                               }
 
-                              // Save email temporarily (you may not need role if screens are separate)
+                              // Save email temporarily
                               final prefs = sl<PreferencesManager>();
                               prefs.setString('temp_email', email);
 
@@ -183,26 +187,25 @@ class _SignInPage_1State extends State<LogInPage1> {
                               try {
                                 await sendOtpEmail(email);
 
-
                                 if (role == USERTYPE.STUDENT.name) {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => SignUpStudent_2(Email: email), 
+                                      builder: (context) => SignUpStudent_2(Email: email),
                                     ),
                                   );
                                 } else if (role == USERTYPE.COMPANY.name) {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => RecruiterVerifyEmailScreen(email), 
+                                      builder: (context) => RecruiterVerifyEmailScreen(email),
                                     ),
                                   );
                                 } else if (role == USERTYPE.UNIVERSITY.name) {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => VerifyUniversityEmail(email: email), 
+                                      builder: (context) => VerifyUniversityEmail(email: email),
                                     ),
                                   );
                                 } else {
@@ -230,7 +233,7 @@ class _SignInPage_1State extends State<LogInPage1> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => SignupAsAnyOne(email: PreferencesManager.USER_EMAIL), // <-- Create this
+                                    builder: (context) => SignupAsAnyOne(email: PreferencesManager.USER_EMAIL),
                                   ),
                                 );
                               } else if (user.user_role == USERTYPE.COMPANY.name) {
@@ -282,7 +285,7 @@ class _SignInPage_1State extends State<LogInPage1> {
                                 Navigator.pushAndRemoveUntil(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => UniversityBottomNavBar(), // <-- Create if needed
+                                    builder: (context) => UniversityBottomNavBar(),
                                   ),
                                       (route) => false,
                                 );
@@ -312,17 +315,15 @@ class _SignInPage_1State extends State<LogInPage1> {
                         ),
                       ),
 
-                      mSpacer(mHeight: 30.0),
+                      SizedBox(height: screenHeight * 0.04),
                       dividerLine(),
-                      mSpacer(),
+                      SizedBox(height: screenHeight * 0.02),
                       belowBars(
                         text: "Continue with Google",
                         imgUrl: "assets/Icons/google.svg",
-                        onTap: () {
-
-                        },
+                        onTap: () {},
                       ),
-                      mSpacer(),
+                      SizedBox(height: screenHeight * 0.02),
                       belowBars(
                         text: "Login with OTP",
                         onTap: () {
@@ -334,7 +335,7 @@ class _SignInPage_1State extends State<LogInPage1> {
                           );
                         },
                       ),
-                      const SizedBox(height: 200),
+                      SizedBox(height: screenHeight * 0.25), // Responsive bottom spacing
                     ],
                   ),
                 ),

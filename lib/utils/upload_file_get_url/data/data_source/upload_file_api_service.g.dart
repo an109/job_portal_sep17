@@ -12,7 +12,7 @@ part of 'upload_file_api_service.dart';
 
 class _UploadFileApiService implements UploadFileApiService {
   _UploadFileApiService(this._dio, {this.baseUrl, this.errorLogger}) {
-    baseUrl ??= 'https://leafyscape.com/api/';
+    baseUrl ??= 'http://bvrcrafts.com:5000/api/';
   }
 
   final Dio _dio;

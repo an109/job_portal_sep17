@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 
 class UniversityRegistrationEntity extends Equatable {
   final String collegeName;
+  final int? id;
   final List<int> courseIds;
   final String profilePic;
   final String universityLogoUrl;
@@ -13,6 +14,7 @@ class UniversityRegistrationEntity extends Equatable {
 
   const UniversityRegistrationEntity({
     required this.collegeName,
+    this.id,
     required this.courseIds,
     required this.profilePic,
     required this.universityLogoUrl,
@@ -26,6 +28,7 @@ class UniversityRegistrationEntity extends Equatable {
   factory UniversityRegistrationEntity.fromJson(Map<String, dynamic> json) {
     return UniversityRegistrationEntity(
       collegeName: json['college_name'] ?? '',
+      id: json['id'] as int?,
       courseIds: List<int>.from(json['course_ids'] ?? []),
       profilePic: json['profile_pic'] ?? '',
       universityLogoUrl: json['university_logo_url'] ?? '',

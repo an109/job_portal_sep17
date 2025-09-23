@@ -15,4 +15,5 @@ class UniversityProfileRepositoryImpl implements UniversityProfileRepository {
     final model = UniversityProfileResponse.fromJson(entity.toJson());
     await _apiService.updateUniversityProfile(model);
   }
+
 }

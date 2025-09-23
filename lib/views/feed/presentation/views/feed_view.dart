@@ -5,7 +5,6 @@ import 'package:flutter_svg/svg.dart';
 import 'package:job_portal/injection_container.dart';
 import 'package:job_portal/utils/constants/image_string.dart';
 import 'package:job_portal/utils/storage/shared_preference.dart';
-import 'package:job_portal/views/feed/data/models/feed_response.dart';
 import 'package:job_portal/views/feed/presentation/views/create_feed_post_view.dart';
 import 'package:job_portal/views/user_profile/presentation/views/User_Notifications_Screen.dart';
 import 'package:job_portal/views/feed/domain/entities/feed_entity.dart';
@@ -18,7 +17,6 @@ import '../../../../utils/constants/urls.dart';
 import '../../../../widgets/widgets.dart';
 import '../../../user_profile/presentation/views/User_messages_screen.dart';
 import '../../../job_related/presentation/views/job_details_view.dart';
-import 'package:job_portal/utils/storage/shared_preference.dart';
 
 class FeedScreen extends StatefulWidget {
   final bool showFeed2;
@@ -223,7 +221,7 @@ class _FeedScreenState extends State<FeedScreen> {
                                       final _prefs = sl<PreferencesManager>();
                                       final user_id = _prefs.getUserId();
 
-                                      /// 🆕 Update UI immediately
+                                      ///  Update UI immediately
                                       setSheetState(() {
                                         commentList.insert(
                                           0,

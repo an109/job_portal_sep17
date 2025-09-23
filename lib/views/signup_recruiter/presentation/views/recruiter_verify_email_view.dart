@@ -32,7 +32,6 @@ class _RecruiterVerifyEmailScreenState extends State<RecruiterVerifyEmailScreen>
   int _start = 15;
   bool _canResend = false;
 
-
   @override
   void initState() {
     super.initState();
@@ -60,7 +59,6 @@ class _RecruiterVerifyEmailScreenState extends State<RecruiterVerifyEmailScreen>
     });
   }
 
-
   @override
   void dispose() {
     _timer?.cancel();
@@ -76,27 +74,30 @@ class _RecruiterVerifyEmailScreenState extends State<RecruiterVerifyEmailScreen>
     startTimer();
   }
 
-
   @override
   Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+    final screenWidth = mediaQuery.size.width;
+    final screenHeight = mediaQuery.size.height;
+
     // Pin theme configuration
     final defaultPinTheme = PinTheme(
-      width: 56,
-      height: 56,
-      textStyle: const TextStyle(
-        fontSize: 20,
-        color: Color.fromRGBO(30, 60, 87, 1),
+      width: screenWidth * 0.14,
+      height: screenWidth * 0.14,
+      textStyle: TextStyle(
+        fontSize: screenWidth * 0.05,
+        color: const Color.fromRGBO(30, 60, 87, 1),
         fontWeight: FontWeight.w600,
       ),
       decoration: BoxDecoration(
         border: Border.all(color: const Color.fromRGBO(234, 239, 243, 1)),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(screenWidth * 0.02),
       ),
     );
 
     final focusedPinTheme = defaultPinTheme.copyDecorationWith(
       border: Border.all(color: const Color.fromRGBO(114, 178, 238, 1)),
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(screenWidth * 0.02),
     );
 
     final submittedPinTheme = defaultPinTheme.copyWith(
@@ -127,30 +128,28 @@ class _RecruiterVerifyEmailScreenState extends State<RecruiterVerifyEmailScreen>
         ],
       ),
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+        padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.06),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            mSpacer(mHeight: 20.0),
+            SizedBox(height: screenHeight * 0.025),
             Text(
               "Verify your email",
               style: mTextStyle32(
                 mColor: const Color(0xff1A1C1E),
               ),
             ),
-            mSpacer(),
+            SizedBox(height: screenHeight * 0.02),
             Text(
               "One Time Password (OTP) has been sent on ${widget.email}",
               style: mTextStyle12(),
             ),
-            mSpacer(mHeight: 26.0),
+            SizedBox(height: screenHeight * 0.032),
             Text(
               "Enter OTP to verify your email",
               style: mTextStyle12(),
             ),
-            const SizedBox(
-              height: 2,
-            ),
+            SizedBox(height: screenHeight * 0.0025),
             // Replaced CustomTextField with Pinput
             Center(
               child: Pinput(
@@ -174,7 +173,7 @@ class _RecruiterVerifyEmailScreenState extends State<RecruiterVerifyEmailScreen>
                 },
               ),
             ),
-            mSpacer(),
+            SizedBox(height: screenHeight * 0.02),
             BlocListener<VerifyOtpRecruiterBloc, VerifyOtpRecruiterState>(
                 listener: (context, state) {
                   if (state is VerifyOtpRecruiterLoaded) {
@@ -182,7 +181,7 @@ class _RecruiterVerifyEmailScreenState extends State<RecruiterVerifyEmailScreen>
 
                     if (data.message == "email verification successful") {
                       final String? token = data.token;
-                      final String userType = data.user.user_role; // "COMPANY"
+                      final String userType = data.user.user_role;
 
                       sl<PreferencesManager>().setToken(token!);
                       sl<PreferencesManager>().setUserType(userType);
@@ -223,7 +222,7 @@ class _RecruiterVerifyEmailScreenState extends State<RecruiterVerifyEmailScreen>
                 },
               ),
             ),
-            mSpacer(),
+            SizedBox(height: screenHeight * 0.02),
             Center(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -244,11 +243,10 @@ class _RecruiterVerifyEmailScreenState extends State<RecruiterVerifyEmailScreen>
                 ],
               ),
             ),
-            mSpacer(mHeight: 44.0),
+            SizedBox(height: screenHeight * 0.055),
             Center(
               child: Container(
-                height: 36,
-                width: 313,
+                width: screenWidth * 0.7825,
                 child: Text(
                   "Can't find our mail? Check your spam folder or promotions tab too!",
                   style: mTextStyle12(),
@@ -256,7 +254,7 @@ class _RecruiterVerifyEmailScreenState extends State<RecruiterVerifyEmailScreen>
                 ),
               ),
             ),
-            mSpacer(mHeight: 243.0),
+            SizedBox(height: screenHeight * 0.3),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [

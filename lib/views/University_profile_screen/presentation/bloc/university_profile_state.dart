@@ -7,6 +7,12 @@ abstract class UniversityProfileState extends Equatable {
   @override
   List<Object?> get props => [];
 }
+class UniversityProfileNotFound extends UniversityProfileState {
+  UniversityProfileNotFound();
+
+  @override
+  List<Object> get props => [];
+}
 
 class UniversityProfileInitial extends UniversityProfileState {}
 

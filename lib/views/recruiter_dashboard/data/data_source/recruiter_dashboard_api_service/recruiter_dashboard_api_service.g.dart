@@ -12,7 +12,7 @@ part of 'recruiter_dashboard_api_service.dart';
 
 class _RecruiterDashboardApiService implements RecruiterDashboardApiService {
   _RecruiterDashboardApiService(this._dio, {this.baseUrl, this.errorLogger}) {
-    baseUrl ??= 'https://leafyscape.com/api/';
+    baseUrl ??= 'http://bvrcrafts.com:5000/api/';
   }
 
   final Dio _dio;

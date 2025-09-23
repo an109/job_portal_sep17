@@ -45,22 +45,6 @@ class _CreateAccountState extends State<CreateAccount> {
                       ),
                     ),
 
-                    // Illustration
-                    // Align(
-                    //   alignment: Alignment.topCenter,
-                    //   child: Padding(
-                    //     padding: EdgeInsets.only(
-                    //       top: screenHeight * 0.08,
-                    //       left: screenWidth * 0.1,
-                    //       right: screenWidth * 0.1,
-                    //     ),
-                    //     child: Image.asset(
-                    //       ImageString.createAccountIllPng,
-                    //       // width: screenWidth * 0.6,
-                    //       // fit: BoxFit.contain,
-                    //     ),
-                    //   ),
-                    // ),
                     Positioned(
                       top: screenHeight * 0.08,
                       left: 0,
@@ -68,8 +52,7 @@ class _CreateAccountState extends State<CreateAccount> {
                       child: Image.asset(
                         ImageString.createAccountIllPng,
                         width: screenWidth,
-                        fit: BoxFit
-                            .fitWidth, // Or use BoxFit.cover for a different look
+                        fit: BoxFit.fitWidth,
                       ),
                     ),
 
@@ -135,6 +118,8 @@ class _CreateAccountState extends State<CreateAccount> {
                         ),
                       );
                     },
+                    screenHeight: screenHeight,
+                    screenWidth: screenWidth,
                   ),
                   SizedBox(height: screenHeight * 0.02),
 
@@ -151,6 +136,8 @@ class _CreateAccountState extends State<CreateAccount> {
                             builder: (_) => RecruiterSignupPage()),
                       );
                     },
+                    screenHeight: screenHeight,
+                    screenWidth: screenWidth,
                   ),
                   SizedBox(height: screenHeight * 0.02),
 
@@ -167,6 +154,8 @@ class _CreateAccountState extends State<CreateAccount> {
                             builder: (_) => SignupUniversityView()),
                       );
                     },
+                    screenHeight: screenHeight,
+                    screenWidth: screenWidth,
                   ),
 
                   SizedBox(height: screenHeight * 0.03),
@@ -185,7 +174,7 @@ class _CreateAccountState extends State<CreateAccount> {
                               MaterialPageRoute(
                                 builder: (_) => LogInPage1(),
                               ),
-                              (Route route) => false,
+                                  (Route route) => false,
                             );
                           },
                           child: Text(
@@ -235,66 +224,88 @@ class HalfCurvePainter extends CustomPainter {
 }
 
 /// OPTION CONTAINER TO SIGN UP AS STUDENT/COMPANY/UNIVERSITY
-Widget OptionContainer(
-    {required String title1,
-    required String title2,
-    required int index,
-    required bool isSelected,
-    required VoidCallback onTap}) {
+Widget OptionContainer({
+  required String title1,
+  required String title2,
+  required int index,
+  required bool isSelected,
+  required VoidCallback onTap,
+  required double screenHeight,
+  required double screenWidth,
+}) {
   final borderColor = isSelected ? TColors.secondary : TColors.primary;
   final textColor = isSelected ? TColors.secondary : TColors.primary;
   final fillColor = isSelected ? Color(0xffFFE4DB) : Color(0xffDFEAFB);
+
   return InkWell(
     onTap: onTap,
     child: Container(
-      height: 81,
+      constraints: BoxConstraints(
+        minHeight: screenHeight * 0.1, // Responsive minimum height
+        maxHeight: screenHeight * 0.12, // Responsive maximum height
+      ),
       width: double.infinity,
       decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: borderColor, width: 1.0),
-          color: fillColor),
-      child: Stack(
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(
-              left: 19.0,
-              top: 14.0,
-            ),
-            child: Column(
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: borderColor, width: 1.0),
+        color: fillColor,
+      ),
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: screenWidth * 0.045,
+          vertical: screenHeight * 0.015,
+        ),
+        child: Stack(
+          children: [
+            Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
                   title1,
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: screenWidth * 0.045, // Responsive font size
                     fontFamily: "Inter",
                     fontWeight: FontWeight.w600,
                     color: textColor,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                mSpacer(mHeight: 7.0),
-                Text(
-                  title2,
-                  style: mTextStyle12(mColor: textColor),
+                SizedBox(height: screenHeight * 0.005),
+                Flexible(
+                  child: Text(
+                    title2,
+                    style: TextStyle(
+                      fontSize: screenWidth * 0.032, // Responsive font size
+                      color: textColor,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ],
             ),
-          ),
-          if (isSelected)
-            Positioned(
-              bottom: 10,
-              right: 10,
-              child: Container(
-                height: 18,
-                width: 18,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(9),
-                  color: TColors.secondary,
+            if (isSelected)
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: Container(
+                  height: screenHeight * 0.025,
+                  width: screenHeight * 0.025,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(screenHeight * 0.0125),
+                    color: TColors.secondary,
+                  ),
+                  child: Icon(
+                    Icons.check,
+                    color: Colors.white,
+                    size: screenHeight * 0.015,
+                  ),
                 ),
-                child: Icon(Icons.check, color: Colors.white, size: 12),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     ),
   );

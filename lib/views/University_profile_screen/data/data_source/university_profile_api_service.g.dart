@@ -12,7 +12,7 @@ part of 'university_profile_api_service.dart';
 
 class _UniversityProfileApiService implements UniversityProfileApiService {
   _UniversityProfileApiService(this._dio, {this.baseUrl, this.errorLogger}) {
-    baseUrl ??= 'https://leafyscape.com/api/';
+    baseUrl ??= 'http://bvrcrafts.com:5000/api/';
   }
 
   final Dio _dio;
