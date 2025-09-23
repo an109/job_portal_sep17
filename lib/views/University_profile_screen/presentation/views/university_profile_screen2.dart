@@ -69,6 +69,15 @@ class _UniversityProfilescreen2State extends State<UniversityProfilescreen2> {
       _websiteLink = prefs.getString('university_website') ?? _websiteLink;
       _address = prefs.getString('university_address') ?? _address;
       _pincode = prefs.getString('university_pincode') ?? _pincode;
+
+      final courseIdStr = prefs.getString('university_selected_course_id');
+      final courseName = prefs.getString('university_selected_course_name');
+      if (courseIdStr != null && courseName != null) {
+        final courseId = int.tryParse(courseIdStr);
+        if (courseId != null) {
+          _selectedCourse = CourseEntity(id: courseId, name: courseName);
+        }
+      }
     });
   }
 
@@ -112,6 +121,11 @@ class _UniversityProfilescreen2State extends State<UniversityProfilescreen2> {
 
   Future<void> _saveAllProfileData() async {
     final prefs = sl<PreferencesManager>();
+
+    if (_selectedCourse != null) {
+      await prefs.setString('university_selected_course_id', _selectedCourse!.id.toString());
+      await prefs.setString('university_selected_course_name', _selectedCourse!.name);
+    }
 
     // Save profile image path if exists (local path)
     if (_profileImage != null) {
@@ -648,6 +662,7 @@ class _UniversityProfilescreen2State extends State<UniversityProfilescreen2> {
     final entity = _buildUniversityProfileEntity();
     context.read<UniversityProfileBloc>().add(SaveUniversityProfile(entity));
     _saveAllProfileData(); // Save local preferences
+    _loadProfileImage();
   }
 
   UniversityProfileEntity _buildUniversityProfileEntity() {
@@ -686,7 +701,7 @@ class _UniversityProfilescreen2State extends State<UniversityProfilescreen2> {
       emailIdVerified: true,
       adharVerified: false,
       phoneVerified: true,
-      phone: phone,
+      phone: _contactInfo,
       email: email,
       courseIds: courseIds, universityLogoUrl: '',
     );

@@ -51,3 +51,29 @@ class FollowingError extends UniversityFollowersFollowingState {
   @override
   List<Object> get props => [message];
 }
+
+class FollowersCountLoading extends UniversityFollowersFollowingState {}
+
+class FollowersCountLoaded extends UniversityFollowersFollowingState {
+  final int count;
+  FollowersCountLoaded(this.count);
+}
+
+class FollowersCountError extends UniversityFollowersFollowingState {
+  final String message;
+  FollowersCountError(this.message);
+}
+
+// --- Following (Alumni) ---
+
+class FollowingCountLoading extends UniversityFollowersFollowingState {}
+
+class FollowingCountLoaded extends UniversityFollowersFollowingState {
+  final int count;
+  FollowingCountLoaded(this.count);
+}
+
+class FollowingCountError extends UniversityFollowersFollowingState {
+  final String message;
+  FollowingCountError(this.message);
+}

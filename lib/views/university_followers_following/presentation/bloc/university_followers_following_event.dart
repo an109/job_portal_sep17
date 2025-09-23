@@ -24,3 +24,12 @@ class LoadFollowing extends UniversityFollowersFollowingEvent {
   @override
   List<Object> get props => [userId];
 }
+class LoadFollowersCount extends UniversityFollowersFollowingEvent {
+  final int userId;
+  LoadFollowersCount(this.userId);
+}
+
+class LoadFollowingCount extends UniversityFollowersFollowingEvent {
+  final int userId;
+  LoadFollowingCount(this.userId);
+}

@@ -34,6 +34,7 @@ import 'package:job_portal/views/signup_recruiter/presentation/bloc/verify_otp_r
 import 'package:job_portal/views/signup_student/presentation/bloc/remote_signup_bloc/remote_signup_bloc.dart';
 import 'package:job_portal/views/signup_student/presentation/bloc/verify_otp_bloc/verify_otp_bloc.dart';
 import 'package:job_portal/views/signup_university/presentation/blocs/university_signup_bloc.dart';
+import 'package:job_portal/views/university_followers_following/presentation/bloc/university_followers_following_bloc.dart';
 import 'package:job_portal/views/university_register/presentation/bloc/university_registration_bloc.dart';
 import 'package:job_portal/views/user_authentication_and_approval_screens/presentation/bloc/user_auth_bloc.dart';
 import 'package:job_portal/views/user_education_approval/presentation/bloc/user_education_approval_bloc.dart';
@@ -101,6 +102,7 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (_) => sl<UniversityRegistrationBloc>()),
         BlocProvider(create: (_) => sl<UniversityProfileBloc>()),
         BlocProvider(create: (_) => sl<UniversityPublicProfileBloc>()),
+        BlocProvider(create: (_) => sl<UniversityFollowersFollowingBloc>()),
 
       ],
       child: GetMaterialApp(

@@ -9,6 +9,9 @@ import 'package:job_portal/utils/constants/image_string.dart';
 import 'package:job_portal/utils/storage/shared_preference.dart';
 
 // Import the specific entities and bloc for University Public Profile
+import '../../../university_followers_following/presentation/bloc/university_followers_following_bloc.dart';
+import '../../../university_followers_following/presentation/bloc/university_followers_following_event.dart';
+import '../../../university_followers_following/presentation/bloc/university_followers_following_state.dart';
 import '../../../university_followers_following/presentation/views/university_followers_screen.dart';
 import '../../../university_followers_following/presentation/views/university_following_screen.dart';
 import '../../../user_profile/presentation/views/follower_following_screens/following_view.dart';
@@ -53,27 +56,19 @@ class UniversityPublicProfileScreen extends StatefulWidget {
 }
 
 class _UniversityPublicProfileScreenState extends State<UniversityPublicProfileScreen> {
-  String _profilePicPath = ""; // This will store the university's profile pic from shared prefs
 
-  @override
-  void initState() {
-    super.initState();
-    final prefs = sl<PreferencesManager>();
-    _profilePicPath = prefs.getString('university_profile_pic') ?? ''; // Adapt key as needed
-  }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-
-    final _prefs = sl<PreferencesManager>();
-    setState(() {
-      _profilePicPath = _prefs.getString('university_profile_pic') ?? '';
-    });
     developer.log('Fetching profile for user ID: ${widget.userId}');
 
     final bloc = context.read<UniversityPublicProfileBloc>();
     bloc.add(FetchUniversityPublicProfile(widget.userId));
+
+    final followBloc = context.read<UniversityFollowersFollowingBloc>();
+    followBloc.add(LoadFollowersCount(widget.userId));
+    followBloc.add(LoadFollowingCount(widget.userId));
   }
 
   @override
@@ -146,28 +141,11 @@ class _UniversityPublicProfileScreenState extends State<UniversityPublicProfileS
                     clipBehavior: Clip.none,
                     alignment: Alignment.bottomLeft,
                     children: [
-                      // ClipRRect(
-                      //   borderRadius: BorderRadius.circular(12),
-                      //   child: Image.network(
-                      //     profile.universityLogoUrl ?? ImageString.dummyImageUrl, // Use universityLogoUrl for cover
-                      //     height: 125,
-                      //     width: double.infinity,
-                      //     fit: BoxFit.cover,
-                      //     errorBuilder: (context, error, stackTrace) {
-                      //       return Container(
-                      //         height: 125,
-                      //         width: double.infinity,
-                      //         color: Colors.grey[300],
-                      //         child: const Icon(Icons.school, size: 50, color: Colors.grey),
-                      //       );
-                      //     },
-                      //   ),
-                      // ),
                       ClipRRect(
                         borderRadius: BorderRadius.circular(12),
                         child: Image.network(
                           Urls.getFullImageUrl(profile.universityLogoUrl ?? ''),
-                          height: 125,
+                          height: 150,
                           width: double.infinity,
                           fit: BoxFit.cover,
                           loadingBuilder: (context, child, loadingProgress) {
@@ -178,9 +156,6 @@ class _UniversityPublicProfileScreenState extends State<UniversityPublicProfileS
                               color: Colors.grey[300],
                               child: Center(
                                 child: CircularProgressIndicator(
-                                  // value: loadingProgress.expectedTotalBytes != null
-                                  //     ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
-                                  //     : null,
                                 ),
                               ),
                             );
@@ -215,10 +190,10 @@ class _UniversityPublicProfileScreenState extends State<UniversityPublicProfileS
                           child: CircleAvatar(
                             radius: 40,
                             backgroundColor: Colors.grey[200],
-                            backgroundImage: (_profilePicPath.isNotEmpty)
-                                ? NetworkImage(Urls.getFullImageUrl(_profilePicPath))
+                            backgroundImage: (profile.profilePic?.isNotEmpty == true)
+                                ? NetworkImage(Urls.getFullImageUrl(profile.profilePic!))
                                 : null,
-                            child: (_profilePicPath.isEmpty)
+                            child: (profile.profilePic?.isEmpty == true || profile.profilePic == null)
                                 ? SvgPicture.asset("assets/Icons/profile_icon.svg", width: 40, height: 40)
                                 : null,
                             onBackgroundImageError: (exception, stackTrace) {
@@ -292,69 +267,6 @@ class _UniversityPublicProfileScreenState extends State<UniversityPublicProfileS
                     ],
                   ),
 
-                  // Row(
-                  //   children: [
-                  //     Expanded(
-                  //       child: Column(
-                  //         crossAxisAlignment: CrossAxisAlignment.start,
-                  //         children: [
-                  //           Text(
-                  //             profile.collegeName ?? 'University Name',
-                  //             style: const TextStyle(
-                  //               fontWeight: FontWeight.bold,
-                  //               fontSize: 20,
-                  //             ),
-                  //           ),
-                  //
-                  //           const SizedBox(height: 4),
-                  //           Text(
-                  //             '@${profile.pincode ?? 'university_handle'}', // Using pincodes as a placeholder for handle
-                  //             style: const TextStyle(color: Colors.grey),
-                  //           ),
-                  //           const SizedBox(height: 4),
-                  //           Text(
-                  //             '${profile.address ?? 'Address'}, Delhi',
-                  //             style: const TextStyle(color: Colors.grey),
-                  //           ),
-                  //           const SizedBox(height: 4),
-                  //           Text(
-                  //             profile.about ?? 'About the university...',
-                  //             maxLines: 2,
-                  //             overflow: TextOverflow.ellipsis,
-                  //             style: const TextStyle(fontSize: 14),
-                  //           ),
-                  //         ],
-                  //       ),
-                  //     ),
-                  //     if (!widget.selfProfile) // Only show follow button if not viewing own profile
-                  //       ElevatedButton(
-                  //         onPressed: () {
-                  //           // Implement follow action for university
-                  //         },
-                  //         style: ElevatedButton.styleFrom(
-                  //           backgroundColor: Colors.transparent,
-                  //           shape: const StadiumBorder(),
-                  //           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  //           elevation: 0,
-                  //           minimumSize: Size.zero,
-                  //           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  //           side: const BorderSide(
-                  //             color: Color.fromARGB(255, 29, 97, 231),
-                  //             width: 1,
-                  //           ),
-                  //         ),
-                  //         child: const Text(
-                  //           'Follow',
-                  //           style: TextStyle(
-                  //             color: Color.fromARGB(255, 29, 97, 231),
-                  //             fontSize: 12,
-                  //             fontWeight: FontWeight.w500,
-                  //           ),
-                  //         ),
-                  //       ),
-                  //   ],
-                  // ),
-
                   const SizedBox(height: 12),
 
                   // --- Followers and Alumni (Following) Buttons ---
@@ -419,6 +331,49 @@ class _UniversityPublicProfileScreenState extends State<UniversityPublicProfileS
                             fontWeight: FontWeight.w500,
                           ),
                         ),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      BlocBuilder<UniversityFollowersFollowingBloc, UniversityFollowersFollowingState>(
+                        builder: (context, state) {
+                          if (state is FollowersCountLoading) {
+                            return const SizedBox(width: 80, height: 30, child: CircularProgressIndicator(strokeWidth: 2));
+                          }
+                          if (state is FollowersCountLoaded) {
+                            return ElevatedButton(
+                              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (c) => UniversityFollowersScreen(userId: widget.userId))),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color.fromARGB(255, 29, 97, 231),
+                                shape: const StadiumBorder(),
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              ),
+                              child: Text('${state.count} followers', style: const TextStyle(color: Colors.white, fontSize: 13)),
+                            );
+                          }
+                          return const SizedBox(); // or retry button
+                        },
+                      ),
+                      const SizedBox(width: 12),
+                      BlocBuilder<UniversityFollowersFollowingBloc, UniversityFollowersFollowingState>(
+                        builder: (context, state) {
+                          if (state is FollowingCountLoading) {
+                            return const SizedBox(width: 80, height: 30, child: CircularProgressIndicator(strokeWidth: 2));
+                          }
+                          if (state is FollowingCountLoaded) {
+                            return ElevatedButton(
+                              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (c) => UniversityFollowingScreen(userId: widget.userId))),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color.fromARGB(255, 29, 97, 231),
+                                shape: const StadiumBorder(),
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              ),
+                              child: Text('${state.count} alumni', style: const TextStyle(color: Colors.white, fontSize: 13)),
+                            );
+                          }
+                          return const SizedBox();
+                        },
                       ),
                     ],
                   ),
@@ -609,13 +564,6 @@ class ActivityCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                // CircleAvatar(
-                //   radius: 20,
-                //   backgroundImage: NetworkImage(avatarUrl),
-                //   onBackgroundImageError: (exception, stackTrace) {
-                //     developer.log('Error loading activity avatar: $exception');
-                //   },
-                // ),
                 CircleAvatar(
                   radius: 20,
                   backgroundColor: Colors.grey[200],

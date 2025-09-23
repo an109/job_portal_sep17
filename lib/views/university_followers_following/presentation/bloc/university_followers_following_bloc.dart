@@ -16,6 +16,9 @@ class UniversityFollowersFollowingBloc extends Bloc<UniversityFollowersFollowing
       ) : super(InitialUniversityFollowersFollowingState()) {
     on<LoadFollowers>(_onLoadFollowers);
     on<LoadFollowing>(_onLoadFollowing);
+
+    on<LoadFollowersCount>(_onLoadFollowersCount);
+    on<LoadFollowingCount>(_onLoadFollowingCount);
   }
 
   void _onLoadFollowers(LoadFollowers event, Emitter<UniversityFollowersFollowingState> emit) async {
@@ -35,6 +38,28 @@ class UniversityFollowersFollowingBloc extends Bloc<UniversityFollowersFollowing
       emit(FollowingLoaded(following));
     } catch (e) {
       emit(FollowingError(e.toString()));
+    }
+  }
+
+  void _onLoadFollowersCount(LoadFollowersCount event, Emitter<UniversityFollowersFollowingState> emit) async {
+    emit(FollowersCountLoading());
+    try {
+      final followers = await _getFollowersUseCase.call(event.userId);
+      final count = followers is List ? followers.length : 0;
+      emit(FollowersCountLoaded(count));
+    } catch (e) {
+      emit(FollowersCountError(e.toString()));
+    }
+  }
+
+  void _onLoadFollowingCount(LoadFollowingCount event, Emitter<UniversityFollowersFollowingState> emit) async {
+    emit(FollowingCountLoading());
+    try {
+      final following = await _getFollowingUseCase.call(event.userId);
+      final count = following is List ? following.length : 0;
+      emit(FollowingCountLoaded(count));
+    } catch (e) {
+      emit(FollowingCountError(e.toString()));
     }
   }
 }
