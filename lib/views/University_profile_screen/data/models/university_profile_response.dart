@@ -66,7 +66,7 @@ class UniversityProfileResponse extends Equatable {
       phoneVerified: json['phone_verified'] as bool,
       phone: json['phone'] as String,
       email: json['email'] as String,
-      courseIds: List<int>.from(json['course_ids'] as List),
+      courseIds: List<int>.from(json['course_id'] as List),
     );
   }
 
@@ -85,7 +85,7 @@ class UniversityProfileResponse extends Equatable {
       'phone_verified': phoneVerified,
       'phone': phone,
       'email': email,
-      'course_ids': courseIds,
+      'course_id': courseIds,
     };
   }
 }

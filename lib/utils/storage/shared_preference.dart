@@ -89,4 +89,12 @@ class PreferencesManager {
   Future<void> clear(String key) async {
     await _prefs.remove(key);
   }
+  // In your PreferencesManager class, add these if they don't exist:
+  String? getProfilePic() {
+    return _prefs.getString('profile_pic');
+  }
+
+  String? getUserName() {
+    return _prefs.getString('user_name') ?? 'User Name';
+  }
 }

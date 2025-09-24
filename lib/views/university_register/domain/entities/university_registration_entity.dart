@@ -56,7 +56,7 @@ class UniversityRegistrationEntity extends Equatable {
   Map<String, dynamic> toJson() {
     return {
       'college_name': collegeName,
-      'course_ids': courseIds,
+      'course_id': courseIds,
       'profile_pic': profilePic,
       'university_logo_url': universityLogoUrl,
       'address': address,

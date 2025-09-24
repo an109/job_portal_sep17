@@ -7,6 +7,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:job_portal/injection_container.dart';
 import 'package:job_portal/utils/constants/image_string.dart';
 import 'package:job_portal/utils/storage/shared_preference.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // Import the specific entities and bloc for University Public Profile
 import '../../../university_followers_following/presentation/bloc/university_followers_following_bloc.dart';
@@ -45,17 +46,20 @@ class UniversityPublicProfileScreen extends StatefulWidget {
   final int userId;
   final bool selfProfile; // To match UserPublicProfileScreen structure
 
+
   const UniversityPublicProfileScreen({
     Key? key,
     required this.userId,
     this.selfProfile = false, // Default to false for public profile
   }) : super(key: key);
 
+
   @override
   State<UniversityPublicProfileScreen> createState() => _UniversityPublicProfileScreenState();
 }
 
 class _UniversityPublicProfileScreenState extends State<UniversityPublicProfileScreen> {
+  String? token;
 
 
   @override
@@ -71,6 +75,24 @@ class _UniversityPublicProfileScreenState extends State<UniversityPublicProfileS
     followBloc.add(LoadFollowingCount(widget.userId));
   }
 
+
+  void _loadToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      token = prefs.getString("token");
+    });
+    developer.log("🔑 [loadToken] Token loaded: $token");
+  }
+
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   final _prefs = sl<PreferencesManager>();
+  //   final profilePicPath = _prefs.getString('university_profile_pic',) ?? '';
+  //
+  // }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -80,7 +102,7 @@ class _UniversityPublicProfileScreenState extends State<UniversityPublicProfileS
         elevation: 0,
         centerTitle: false,
         title: SvgPicture.asset(
-          ImageString.jobPortalLogo, // Assuming this path is correct
+          ImageString.jobPortalLogo,
           height: 30,
         ),
         actions: [

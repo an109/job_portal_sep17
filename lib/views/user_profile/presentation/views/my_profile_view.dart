@@ -141,7 +141,10 @@ class _UserProfileScreen2State extends State<UserProfileScreen2> {
 
       try {
         final formData = FormData.fromMap({
-          'file': await MultipartFile.fromFile(file.path, filename: file.path.split('/').last),
+          'profilePic': await MultipartFile.fromFile(
+            file.path,
+            filename: file.path.split('/').last,
+          ),
         });
 
         context.read<UploadFileBloc>().add(
@@ -184,6 +187,13 @@ class _UserProfileScreen2State extends State<UserProfileScreen2> {
     // var formData = FormData();
 
     final fileName = file.path!.split('/').last;
+    final extension = fileName.split('.').last.toLowerCase();
+
+    // ✅ Only allow .pdf, .doc, .docx
+    if (!['pdf', 'doc', 'docx'].contains(extension)) {
+      showSnackbar('Only PDF, DOC, and DOCX files are allowed for resume.', context);
+      return; //  Stop upload
+    }
 
     print('File name: $fileName');
     print('Extension: ${fileName.split('.').last}');
@@ -191,7 +201,7 @@ class _UserProfileScreen2State extends State<UserProfileScreen2> {
     final formData = FormData.fromMap({
       'resume': await MultipartFile.fromFile(
         file.path!, filename: fileName,
-        contentType: MediaType('application', 'pdf'), // explicitly set MIME
+        contentType: MediaType('application', extension == 'pdf' ? 'pdf' : 'msword'), // explicitly set MIME
       ),
     });
     if (shouldUploadResume) {

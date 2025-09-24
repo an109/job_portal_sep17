@@ -67,6 +67,7 @@ class _UserExperienceApprovalScreenState extends State<UserExperienceApprovalScr
           uploadedCertificateUrls[exp.current_company!] = exp.experienceCertificate!;
         }
 
+
         jobExperienceControllers.add(JobExperienceFillingCardData(
           company_name: exp.current_company!,
           jobRoleController: TextEditingController(text: exp.current_job_role),
@@ -529,20 +530,29 @@ class _UserExperienceApprovalScreenState extends State<UserExperienceApprovalScr
       }
       String certificateUrl;
 
-// ✅ If upload was triggered (file picked), we MUST use uploaded URL
+
+// Case 1: A new file was picked AND successfully uploaded → use uploaded URL
       if (experienceProofs.containsKey(e.company_name)) {
-        // Upload was triggered — must have URL
         final uploadedUrl = uploadedCertificateUrls[e.company_name];
-        if (uploadedUrl != null) {
+        if (uploadedUrl != null && uploadedUrl.isNotEmpty) {
           certificateUrl = uploadedUrl;
         } else {
-          // This should not happen if logic is correct — but fail safe
-          developer.log("❌ No uploaded URL for ${e.company_name} even though upload was triggered");
+          // File was picked but upload failed or hasn't completed → block save earlier (but just in case)
+          developer.log("⚠️ Upload was initiated for ${e.company_name} but no URL received. Using placeholder.");
           certificateUrl = "no_file.pdf";
         }
-      } else {
-        // No new upload — use existing proof or default
-        certificateUrl = e.expProof ?? "no_file.pdf";
+      }
+// Case 2: No new file picked → use the original certificate URL (from backend, e.g., 'uploads/...')
+      else {
+        // IMPORTANT: Use the ORIGINAL backend URL if it exists and is valid
+        // Do NOT use local filenames like 'certificate.pdf'
+        final originalUrl = e.expProof;
+        if (originalUrl != null && originalUrl != "no_file.pdf" && originalUrl.isNotEmpty) {
+          // Assume it's already a valid server path (as loaded from API)
+          certificateUrl = originalUrl;
+        } else {
+          certificateUrl = "no_file.pdf";
+        }
       }
       developer.log("📦 Preparing experience for ${e.company_name}: role=${e.jobRoleController.text}, cert=$certificateUrl");
 

@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'dart:io';
 
 import 'package:dio/dio.dart'; // Import Dio for FormData
@@ -80,25 +81,50 @@ class _UniversityProfilescreen2State extends State<UniversityProfilescreen2> {
       }
     });
   }
-
   Future<void> _loadProfileImage() async {
     final prefs = sl<PreferencesManager>();
-    final savedImagePath = prefs.getString('university_profile_pic'); // This is for local file path
 
+    final relativePath = prefs.getString('university_profile_pic_url');
+    if (relativePath != null && relativePath.isNotEmpty) {
+      setState(() {
+        _profilePicUrl = Urls.getFullImageUrl(relativePath); // Convert to full URL for display
+        _profileImage = null;
+      });
+      developer.log('Loaded profile image from API. Relative: $relativePath, Full: $_profilePicUrl');
+      return;
+    }
+
+    // Fallback to local file path
+    final savedImagePath = prefs.getString('university_profile_pic');
     if (savedImagePath != null && File(savedImagePath).existsSync()) {
       setState(() {
-        _profileImage = File(savedImagePath); // local file
+        _profileImage = File(savedImagePath);
+        _profilePicUrl = null;
       });
+      developer.log('Loaded profile image from local file: $savedImagePath');
     } else {
-      // If no local file, try to load from backend URL
-      final backendUrl = prefs.getString('university_profile_pic_url'); // This is the URL from the backend
-      if (backendUrl != null && backendUrl.isNotEmpty) {
-        setState(() {
-          _profilePicUrl = Urls.getFullImageUrl(backendUrl); // Use full URL for NetworkImage
-        });
-      }
+      developer.log('No profile image found in preferences');
     }
   }
+
+  // Future<void> _loadProfileImage() async {
+  //   final prefs = sl<PreferencesManager>();
+  //   final savedImagePath = prefs.getString('university_profile_pic'); // This is for local file path
+  //
+  //   if (savedImagePath != null && File(savedImagePath).existsSync()) {
+  //     setState(() {
+  //       _profileImage = File(savedImagePath); // local file
+  //     });
+  //   } else {
+  //     // If no local file, try to load from backend URL
+  //     final backendUrl = prefs.getString('university_profile_pic_url'); // This is the URL from the backend
+  //     if (backendUrl != null && backendUrl.isNotEmpty) {
+  //       setState(() {
+  //         _profilePicUrl = Urls.getFullImageUrl(backendUrl); // Use full URL for NetworkImage
+  //       });
+  //     }
+  //   }
+  // }
   // New: Load university logo image (similar to profile pic)
   Future<void> _loadLogoImage() async {
     final prefs = sl<PreferencesManager>();
@@ -216,12 +242,24 @@ class _UniversityProfilescreen2State extends State<UniversityProfilescreen2> {
                       // Image uploaded successfully, save the URL
                       final uploadedUrls = uploadState.uploadFileEntity.url;
                       if (uploadedUrls.isNotEmpty) {
-                        final newProfilePicUrl = uploadedUrls.first; // Assuming single image upload
+                        final relativePath = uploadedUrls.first;
+
                         setState(() {
-                          _profilePicUrl = Urls.getFullImageUrl(newProfilePicUrl); // Update UI with new URL
+                          _profilePicUrl = Urls.getFullImageUrl(relativePath); // Convert to full URL for display
                         });
-                        // Save the backend URL to shared preferences
-                        await prefs.setString('university_profile_pic_url', newProfilePicUrl);
+
+                        // Save the RELATIVE PATH to shared preferences (not the full URL)
+                        await prefs.setString('university_profile_pic_url', relativePath);
+
+                        developer.log('Profile picture uploaded. Relative path: $relativePath, Full URL: $_profilePicUrl');
+
+                        // final newProfilePicUrl = uploadedUrls.first; // Assuming single image upload
+                        // setState(() {
+                        //   _profilePicUrl = Urls.getFullImageUrl(newProfilePicUrl); // Update UI with new URL
+                        // });
+                        // // Save the backend URL to shared preferences
+                        // await prefs.setString('university_profile_pic_url', newProfilePicUrl);
+
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text('Profile picture uploaded successfully!')),
                         );
@@ -248,14 +286,25 @@ class _UniversityProfilescreen2State extends State<UniversityProfilescreen2> {
                                   decoration: BoxDecoration(
                                     color: Colors.grey[300],
                                     borderRadius: BorderRadius.circular(75),
-                                    image: _profileImage != null
+                                    // image: _profileImage != null
+                                    //     ? DecorationImage(
+                                    //   image: FileImage(_profileImage!), // local file
+                                    //   fit: BoxFit.cover,
+                                    // )
+                                    //     : (_profilePicUrl != null && _profilePicUrl!.isNotEmpty
+                                    //     ? DecorationImage(
+                                    //   image: NetworkImage(_profilePicUrl!), // backend URL
+                                    //   fit: BoxFit.cover,
+                                    // )
+                                    //     : null),
+                                    image: _profilePicUrl != null && _profilePicUrl!.isNotEmpty
                                         ? DecorationImage(
-                                      image: FileImage(_profileImage!), // local file
+                                      image: NetworkImage(_profilePicUrl!), // Full URL from API
                                       fit: BoxFit.cover,
                                     )
-                                        : (_profilePicUrl != null && _profilePicUrl!.isNotEmpty
+                                        : (_profileImage != null
                                         ? DecorationImage(
-                                      image: NetworkImage(_profilePicUrl!), // backend URL
+                                      image: FileImage(_profileImage!), // Local file
                                       fit: BoxFit.cover,
                                     )
                                         : null),
@@ -659,10 +708,20 @@ class _UniversityProfilescreen2State extends State<UniversityProfilescreen2> {
   }
 
   void _instantSave() {
-    final entity = _buildUniversityProfileEntity();
-    context.read<UniversityProfileBloc>().add(SaveUniversityProfile(entity));
-    _saveAllProfileData(); // Save local preferences
-    _loadProfileImage();
+    try {
+      final entity = _buildUniversityProfileEntity();
+      developer.log('Attempting to save: ${entity.toJson()}');
+      context.read<UniversityProfileBloc>().add(SaveUniversityProfile(entity));
+      developer.log('Saving university profile: ${entity.toJson()}');
+      developer.log(
+          'API Endpoint: http://bvrcrafts.com:5000/api/universitydetail');
+      _saveAllProfileData(); // Save local preferences
+      _loadProfileImage();
+    }
+    catch (e) {
+      developer.log('Error in _instantSave: $e');
+    }
+
   }
 
   UniversityProfileEntity _buildUniversityProfileEntity() {
@@ -684,6 +743,13 @@ class _UniversityProfilescreen2State extends State<UniversityProfilescreen2> {
       courseIds = [1]; // Default course ID if none selected
     }
 
+    // Extract relative path from full URL for backend
+    String? profilePicRelativePath;
+    if (_profilePicUrl != null && _profilePicUrl!.isNotEmpty) {
+      // Convert full URL back to relative path for backend
+      profilePicRelativePath = _profilePicUrl!.replaceFirst('http://bvrcrafts.com:5000/api/', '');
+    }
+
     return UniversityProfileEntity(
       collegeName: _universityName, // Use the state variable
       address: _address,
@@ -696,7 +762,8 @@ class _UniversityProfilescreen2State extends State<UniversityProfilescreen2> {
           : "https://${_socialMedia.startsWith('www.') ? _socialMedia : 'www.$_socialMedia'}",
       about: _aboutText,
       // Use the URL from the backend if available, otherwise local path (though backend URL is preferred for persistence)
-      profilePic: _profilePicUrl ?? _profileImage?.path ?? "",
+      // profilePic: _profilePicUrl ?? _profileImage?.path ?? "",
+      profilePic: profilePicRelativePath ?? _profileImage?.path ?? "",
       // universityLogoUrl: _profilePicUrl ?? "", // Assuming universityLogoUrl is the same as profilePic for now
       emailIdVerified: true,
       adharVerified: false,

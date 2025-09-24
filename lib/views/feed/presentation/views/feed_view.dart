@@ -75,6 +75,8 @@ class _FeedScreenState extends State<FeedScreen> {
 
 
 
+
+
   @override
   void didChangeDependencies() {
     // TODO: implement didChangeDependencies
@@ -327,6 +329,7 @@ class _FeedScreenState extends State<FeedScreen> {
             ),
           ],
         ),
+
         body: SingleChildScrollView(
           controller: _scrollController,
           child: Padding(
@@ -486,7 +489,7 @@ class _FeedScreenState extends State<FeedScreen> {
                               feedPostId: feedPostId.toString(),
                               slug: slug,
                               // imageUrl: item["image"],
-                              imageUrl: ImageString.dummyImageUrl,
+                              imageUrl: item.user.profile_pic ?? ImageString.dummyImageUrl,
                               company: item!.user.first_name,
                               // posted: '1 day ago',
                               posted:
@@ -611,11 +614,62 @@ class _FeedCardState extends State<FeedCard> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SvgPicture.asset(
-                ImageString.profileIcon,
+              // SvgPicture.asset(
+              //   ImageString.profileIcon,
+              //   height: 40,
+              // ),
+              Container(
+                width: 40,
                 height: 40,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.grey[200],
+                ),
+                child: (widget.imageUrl.isNotEmpty && widget.imageUrl != ImageString.dummyImageUrl)
+                    ? ClipOval(
+                  child: Image.network(
+                    Urls.getFullImageUrl(widget.imageUrl),
+                    width: 40,
+                    height: 40,
+                    fit: BoxFit.cover,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Center(
+                        child: CircularProgressIndicator(
+                          value: loadingProgress.expectedTotalBytes != null
+                              ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                              : null,
+                        ),
+                      );
+                    },
+                    errorBuilder: (context, error, stackTrace) {
+                      return SvgPicture.asset(
+                        ImageString.profileIcon,
+                        width: 40,
+                        height: 40,
+                      );
+                    },
+                  ),
+                )
+                    : SvgPicture.asset(
+                  ImageString.profileIcon,
+                  width: 40,
+                  height: 40,
+                ),
               ),
-              const SizedBox(width: 12),
+
+              // const SizedBox(width: 12),
+              // Expanded(
+              //   child: Column(
+              //     crossAxisAlignment: CrossAxisAlignment.start,
+              //     children: [
+              //       Text(widget.company, style: const TextStyle(color: Colors.grey)),
+              //       Text(widget.noFollowers),
+              //     ],
+              //   ),
+              // ),
+               const Icon(Icons.more_vert),
+               SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
