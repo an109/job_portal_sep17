@@ -85,6 +85,7 @@ class Urls {
   static const String registerCompany = "company-recruiter/profile";
 
   static const String registerUniversity = "universitydetail";
+  static const String universityDetail = '/universitydetail';
 
   static const String updateRecruiterProfile = "company-recruiter/profile";
 

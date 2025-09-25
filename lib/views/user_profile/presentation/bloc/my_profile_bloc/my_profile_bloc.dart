@@ -54,7 +54,7 @@ class MyProfileBloc extends Bloc<MyProfileEvent, MyProfileState> {
       developer.log('📝 [MyProfileBloc] Payload (params): ${event.params}');
 
       emit(const UpdateProfileLoading());
-      final map = {'id': event.id, 'params': event.params};
+      final map = {'id': event.id, 'params': event.params, 'user_profile_pic': event.params['user_profile_pic']}; // uploaded file URL
       final response = await _updateUserProfileUsecase(params: map);
 
       developer.log('✅ [MyProfileBloc] UpdateProfile: API call succeeded');

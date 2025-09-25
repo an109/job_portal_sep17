@@ -84,17 +84,10 @@ class _UniversityPublicProfileScreenState extends State<UniversityPublicProfileS
     developer.log("🔑 [loadToken] Token loaded: $token");
   }
 
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   final _prefs = sl<PreferencesManager>();
-  //   final profilePicPath = _prefs.getString('university_profile_pic',) ?? '';
-  //
-  // }
-
-
   @override
   Widget build(BuildContext context) {
+    final prefs = sl<PreferencesManager>();
+    final userEmail = prefs.getString(PreferencesManager.USER_EMAIL) ?? '@email.com';
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -244,7 +237,7 @@ class _UniversityPublicProfileScreenState extends State<UniversityPublicProfileS
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              '@${_getHandleFromProfile(profile)}',
+                              prefs.getString(PreferencesManager.USER_EMAIL) ?? 'recruiter@email.com',
                               style: const TextStyle(color: Colors.grey),
                             ),
                             const SizedBox(height: 4),

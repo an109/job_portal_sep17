@@ -58,6 +58,7 @@ class _UserProfileScreen2State extends State<UserProfileScreen2> {
     // sl<PreferencesManager>().setString('user_profile_pic', _profilePicPath);
     final prefs = sl<PreferencesManager>();
     _profilePicPath = prefs.getString('user_profile_pic') ?? '';
+    developer.log("initState -> Profile pic path from prefs: $_profilePicPath");
   }
 
 
@@ -72,6 +73,7 @@ class _UserProfileScreen2State extends State<UserProfileScreen2> {
     final _prefs = sl<PreferencesManager>();
 
     final user_id = _prefs.getUserId();
+    developer.log("didChangeDependencies -> Loading MyProfileDetails for user: ${user_id ?? '6'}");
 
     bloc.add(LoadMyProfileDetails(user_id ?? '6'));
   }
@@ -86,7 +88,7 @@ class _UserProfileScreen2State extends State<UserProfileScreen2> {
         child: EditAboutDialog(about: currentAbout),
       ),
     ).then(
-      (updatedAbout) {
+          (updatedAbout) {
         if (updatedAbout != null) {
           // Use updated about string
           print("Updated About: $updatedAbout");
@@ -115,7 +117,7 @@ class _UserProfileScreen2State extends State<UserProfileScreen2> {
         child: EditCareerObjectiveView(career_objective: career_objective),
       ),
     ).then(
-      (updatedAbout) {
+          (updatedAbout) {
         if (updatedAbout != null) {
           // Use updated about string
           print("Updated career_objective: $career_objective");
@@ -135,9 +137,11 @@ class _UserProfileScreen2State extends State<UserProfileScreen2> {
   final ImagePicker _picker = ImagePicker();
 
   Future<void> _pickImage() async {
+    developer.log("Opening gallery picker for profile pic...");
     final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       final file = File(pickedFile.path);
+      developer.log("Picked image file: ${file.path}");
 
       try {
         final formData = FormData.fromMap({
@@ -146,10 +150,12 @@ class _UserProfileScreen2State extends State<UserProfileScreen2> {
             filename: file.path.split('/').last,
           ),
         });
+        developer.log("Dispatching LoadUploadFile for profile_pic...");
 
         context.read<UploadFileBloc>().add(
             LoadUploadFile(formData, uploadType: 'profile_pic'));
       } catch (e) {
+        developer.log("Upload failed: $e");
         showSnackbar('Upload failed: $e', context);
       }
     }
@@ -165,7 +171,7 @@ class _UserProfileScreen2State extends State<UserProfileScreen2> {
         child: EditLanguageView(language: language),
       ),
     ).then(
-      (updatedAbout) {
+          (updatedAbout) {
         if (updatedAbout != null) {
           // Use updated about string
           print("Updated language: $language");
@@ -182,28 +188,24 @@ class _UserProfileScreen2State extends State<UserProfileScreen2> {
       },
     );
   }
-
   Future<void> uploadResume(PlatformFile file) async {
-    // var formData = FormData();
-
     final fileName = file.path!.split('/').last;
     final extension = fileName.split('.').last.toLowerCase();
+    developer.log("Picked resume file: $fileName, extension: $extension");
 
-    // ✅ Only allow .pdf, .doc, .docx
     if (!['pdf', 'doc', 'docx'].contains(extension)) {
       showSnackbar('Only PDF, DOC, and DOCX files are allowed for resume.', context);
-      return; //  Stop upload
+      return;
     }
-
-    print('File name: $fileName');
-    print('Extension: ${fileName.split('.').last}');
 
     final formData = FormData.fromMap({
       'resume': await MultipartFile.fromFile(
-        file.path!, filename: fileName,
-        contentType: MediaType('application', extension == 'pdf' ? 'pdf' : 'msword'), // explicitly set MIME
+        file.path!,
+        filename: fileName,
+        contentType: MediaType('application', extension == 'pdf' ? 'pdf' : 'msword'),
       ),
     });
+
     if (shouldUploadResume) {
       context.read<UploadFileBloc>().add(
           LoadUploadFile(formData, uploadType: 'resume'));
@@ -211,10 +213,40 @@ class _UserProfileScreen2State extends State<UserProfileScreen2> {
       shouldUploadResume = true;
     }
   }
+  // Future<void> uploadResume(PlatformFile file) async {
+  //   // var formData = FormData();
+  //
+  //   final fileName = file.path!.split('/').last;
+  //   final extension = fileName.split('.').last.toLowerCase();
+  //   developer.log("Picked resume file: $fileName, extension: $extension");
+  //
+  //   // ✅ Only allow .pdf, .doc, .docx
+  //   if (!['pdf', 'doc', 'docx'].contains(extension)) {
+  //     showSnackbar('Only PDF, DOC, and DOCX files are allowed for resume.', context);
+  //     return; //  Stop upload
+  //   }
+  //
+  //   print('File name: $fileName');
+  //   print('Extension: ${fileName.split('.').last}');
+  //
+  //   final formData = FormData.fromMap({
+  //     'resume': await MultipartFile.fromFile(
+  //       file.path!, filename: fileName,
+  //       contentType: MediaType('application', extension == 'pdf' ? 'pdf' : 'msword'), // explicitly set MIME
+  //     ),
+  //   });
+  //   if (shouldUploadResume) {
+  //     context.read<UploadFileBloc>().add(
+  //         LoadUploadFile(formData, uploadType: 'resume'));
+  //   } else {
+  //     shouldUploadResume = true;
+  //   }
+  // }
 
   Future<void> updateProfileApi(Map<String, dynamic> map) async {
     final _prefs = sl<PreferencesManager>();
     final user_id = _prefs.getUserId();
+    developer.log("Updating profile for user: ${user_id ?? '6'} with map: $map");
 
     context.read<MyProfileBloc>().add(LoadUpdateProfile(user_id ?? '6', map));
   }
@@ -236,6 +268,8 @@ class _UserProfileScreen2State extends State<UserProfileScreen2> {
 
   @override
   Widget build(BuildContext context) {
+    developer.log("Building UserProfileScreen2...");
+
     return Scaffold(
       backgroundColor: Colors.white,
 
@@ -290,6 +324,7 @@ class _UserProfileScreen2State extends State<UserProfileScreen2> {
                         Urls.getFullImageUrl(_profilePicPath),
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) {
+                          developer.log("Error loading profile pic: $error");
                           return _buildPlaceholder();
                         },
                       )
@@ -336,7 +371,7 @@ class _UserProfileScreen2State extends State<UserProfileScreen2> {
                             fontSize: 16, fontWeight: FontWeight.w700),
                       ),
                       Text(
-                          // "Aman@gmail.com",
+                        // "Aman@gmail.com",
                           "${data.email} ",
                           style: const TextStyle(
                               fontSize: 13,
@@ -353,13 +388,13 @@ class _UserProfileScreen2State extends State<UserProfileScreen2> {
                             Text(
                               "About",
                               style:
-                                  mTextStyle14(mColor: const Color(0xff544C4C)),
+                              mTextStyle14(mColor: const Color(0xff544C4C)),
                             ),
                             const SizedBox(
                               height: 3,
                             ),
                             Text(
-                                // "Hi, I am Aman working as a designer from 3 years...",
+                              // "Hi, I am Aman working as a designer from 3 years...",
                                 data.aboutUs ?? "Add about yourself...",
                                 style: mTextStyle14(
                                   mColor: const Color(0xff9095A0),
@@ -385,7 +420,7 @@ class _UserProfileScreen2State extends State<UserProfileScreen2> {
                             Text(
                               "Career Objective",
                               style:
-                                  mTextStyle14(mColor: const Color(0xff544C4C)),
+                              mTextStyle14(mColor: const Color(0xff544C4C)),
                             ),
                             const SizedBox(
                               height: 3,
@@ -424,7 +459,7 @@ class _UserProfileScreen2State extends State<UserProfileScreen2> {
                             Text(
                               "Resume",
                               style:
-                                  mTextStyle14(mColor: const Color(0xff544C4C)),
+                              mTextStyle14(mColor: const Color(0xff544C4C)),
                             ),
                             const SizedBox(
                               height: 3,
@@ -433,27 +468,27 @@ class _UserProfileScreen2State extends State<UserProfileScreen2> {
                               resumeCardForUrl(data.resume!),
                             BlocBuilder<UploadResumeBloc, UploadResumeState>(
                                 builder: (context, state) {
-                              if (state is PickResumeLoaded) {
-                                final resume = state.file;
-                                developer.log(
-                                    'Resume file name : ${resume.files.first.name}');
+                                  if (state is PickResumeLoaded) {
+                                    final resume = state.file;
+                                    developer.log(
+                                        'Resume file name : ${resume.files.first.name}');
 
-                                uploadResume(resume.files.first);
+                                    uploadResume(resume.files.first);
 
-                                return resumeCard(resume);
-                              } else if (state is PickResumeNoFilePicked) {
-                                return const Text('No file picked');
-                              } else if (state is PickResumeLoading) {
-                                developer.log('Resume file loading');
-                                return const SizedBox();
-                              } else if (state is PickResumeError) {
-                                developer
-                                    .log('Error while picking resume file.');
-                                return const SizedBox();
-                              } else {
-                                return const SizedBox();
-                              }
-                            }),
+                                    return resumeCard(resume);
+                                  } else if (state is PickResumeNoFilePicked) {
+                                    return const Text('No file picked');
+                                  } else if (state is PickResumeLoading) {
+                                    developer.log('Resume file loading');
+                                    return const SizedBox();
+                                  } else if (state is PickResumeError) {
+                                    developer
+                                        .log('Error while picking resume file.');
+                                    return const SizedBox();
+                                  } else {
+                                    return const SizedBox();
+                                  }
+                                }),
                             BlocListener<UploadFileBloc, UploadFileState>(
                               listener: (context, state) {
                                 if (state is UploadFileLoaded) {
@@ -461,11 +496,11 @@ class _UserProfileScreen2State extends State<UserProfileScreen2> {
                                   final uploadType = state.uploadType;
                                   final url = state.uploadFileEntity.url.first;
                                   if (uploadType == 'profile_pic') {
-                                  sl<PreferencesManager>().setString('user_profile_pic', url);
-                                  setState(() {
-                                    _profilePicPath = url;
-                                  });
-                                  showSnackbar('Profile picture updated', context);
+                                    sl<PreferencesManager>().setString('user_profile_pic', url);
+                                    setState(() {
+                                      _profilePicPath = url;
+                                    });
+                                    showSnackbar('Profile picture updated', context);
                                   }
                                   else if (uploadType == 'resume') {
                                     // 👇 Handle resume
@@ -509,7 +544,7 @@ class _UserProfileScreen2State extends State<UserProfileScreen2> {
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) =>
-                                            const ChooseYourTemplateScreen(),
+                                        const ChooseYourTemplateScreen(),
                                       ),
                                     );
                                     context
@@ -567,7 +602,7 @@ class _UserProfileScreen2State extends State<UserProfileScreen2> {
                                   .toList(),
 
                               statusList:
-                                  workExperienceStatus(data.experiences),
+                              workExperienceStatus(data.experiences),
                               onEditTap: () {
                                 Navigator.push(
                                   context,
@@ -645,7 +680,7 @@ class _UserProfileScreen2State extends State<UserProfileScreen2> {
                                   ['Language'],
                               statusList: List<bool>.generate(
                                   data.language?.split(',').length ?? 0,
-                                  (int index) => true,
+                                      (int index) => true,
                                   growable: true),
                               onEditTap: () {
                                 _showEditLanguageDialog(
@@ -670,7 +705,7 @@ class _UserProfileScreen2State extends State<UserProfileScreen2> {
                               },
                               editText: "Get Verified",
                               isGetVerified:
-                                  true, // Only show "Get Verified" without "Edit/"
+                              true, // Only show "Get Verified" without "Edit/"
                             ),
                           ],
                         ),
@@ -813,7 +848,7 @@ Widget resumeCard(FilePickerResult file) {
   return Container(
     decoration: BoxDecoration(
         border:
-            Border.all(color: const Color.fromRGBO(84, 76, 76, 1), width: 0.4),
+        Border.all(color: const Color.fromRGBO(84, 76, 76, 1), width: 0.4),
         borderRadius: BorderRadius.circular(6)),
     child: Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -849,7 +884,7 @@ Widget resumeCardForUrl(String name) {
   return Container(
     decoration: BoxDecoration(
         border:
-            Border.all(color: const Color.fromRGBO(84, 76, 76, 1), width: 0.4),
+        Border.all(color: const Color.fromRGBO(84, 76, 76, 1), width: 0.4),
         borderRadius: BorderRadius.circular(6)),
     child: Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),

@@ -31,7 +31,7 @@ class UserDetailEntity {
   final List<UserEducationEntity> educations;
   final List<UserExperienceEntity> experiences;
   final List<ProfileSkillEntity> skills;
-  final String? user_profile_pic;
+
 
   UserDetailEntity( {
     required this.id,
@@ -65,7 +65,7 @@ class UserDetailEntity {
     required this.educations,
     required this.experiences,
     required this.skills,
-    this.user_profile_pic,
+
   });
 
   // Add this toJson method

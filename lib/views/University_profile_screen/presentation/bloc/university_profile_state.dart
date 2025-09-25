@@ -1,3 +1,4 @@
+// university_profile_state.dart
 import 'package:equatable/equatable.dart';
 import '../../domain/entities/university_profile_entity.dart';
 
@@ -7,24 +8,27 @@ abstract class UniversityProfileState extends Equatable {
   @override
   List<Object?> get props => [];
 }
-class UniversityProfileNotFound extends UniversityProfileState {
-  UniversityProfileNotFound();
-
-  @override
-  List<Object> get props => [];
-}
 
 class UniversityProfileInitial extends UniversityProfileState {}
 
 class UniversityProfileLoading extends UniversityProfileState {}
 
-class UniversityProfileSuccess extends UniversityProfileState {
+class UniversityProfileLoaded extends UniversityProfileState {
   final UniversityProfileEntity entity;
 
-  const UniversityProfileSuccess(this.entity);
+  const UniversityProfileLoaded(this.entity);
 
   @override
   List<Object?> get props => [entity];
+}
+
+class UniversityProfileSuccess extends UniversityProfileState {
+  final UniversityProfileEntity? updatedEntity;
+
+  const UniversityProfileSuccess(this.updatedEntity);
+
+  @override
+  List<Object?> get props => [updatedEntity];
 }
 
 class UniversityProfileFailure extends UniversityProfileState {

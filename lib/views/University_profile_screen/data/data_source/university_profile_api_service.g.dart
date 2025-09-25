@@ -22,19 +22,52 @@ class _UniversityProfileApiService implements UniversityProfileApiService {
   final ParseErrorLogger? errorLogger;
 
   @override
-  Future<UniversityProfileResponse> updateUniversityProfile(
-    UniversityProfileResponse body,
-  ) async {
+  Future<UniversityProfileResponse> getUniversityProfile() async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<UniversityProfileResponse>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/universitydetail',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late UniversityProfileResponse _value;
+    try {
+      _value = UniversityProfileResponse.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
+  Future<UniversityProfileResponse> updateUniversityProfile(
+    UniversityProfileEntity body,
+  ) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{r'Content-Type': 'application/json'};
+    _headers.removeWhere((k, v) => v == null);
     final _data = <String, dynamic>{};
     _data.addAll(body.toJson());
     final _options = _setStreamType<UniversityProfileResponse>(
-      Options(method: 'PUT', headers: _headers, extra: _extra)
+      Options(
+        method: 'PUT',
+        headers: _headers,
+        extra: _extra,
+        contentType: 'application/json',
+      )
           .compose(
             _dio.options,
-            'universitydetail',
+            '/universitydetail',
             queryParameters: queryParameters,
             data: _data,
           )

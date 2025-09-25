@@ -1,36 +1,37 @@
+// university_profile_response.dart
 import 'package:equatable/equatable.dart';
 
 class UniversityProfileResponse extends Equatable {
-  final String collegeName;
-  final String address;
-  final String pincode;
-  final String websiteLink;
-  final String about;
-  final String profilePic;
-  final String universityLogoUrl;
-  final String socialMediaLink;
-  final bool emailIdVerified;
-  final bool adharVerified;
-  final bool phoneVerified;
-  final String phone;
-  final String email;
-  final List<int> courseIds;
+  final String? collegeName;
+  final String? address;
+  final String? pincode;
+  final String? websiteLink;
+  final String? about;
+  final String? profilePic;
+  final String? universityLogoUrl;
+  final String? socialMediaLink;
+  final bool? emailIdVerified;
+  final bool? aadharVerified;
+  final bool? phoneVerified;
+  final String? phone;
+  final String? email;
+  final List<int>? courseIds;
 
   const UniversityProfileResponse({
-    required this.collegeName,
-    required this.address,
-    required this.pincode,
-    required this.websiteLink,
-    required this.about,
-    required this.profilePic,
-    required this.universityLogoUrl,
-    required this.socialMediaLink,
-    required this.emailIdVerified,
-    required this.adharVerified,
-    required this.phoneVerified,
-    required this.phone,
-    required this.email,
-    required this.courseIds,
+    this.collegeName,
+    this.address,
+    this.pincode,
+    this.websiteLink,
+    this.about,
+    this.profilePic,
+    this.universityLogoUrl,
+    this.socialMediaLink,
+    this.emailIdVerified,
+    this.aadharVerified,
+    this.phoneVerified,
+    this.phone,
+    this.email,
+    this.courseIds,
   });
 
   @override
@@ -44,7 +45,7 @@ class UniversityProfileResponse extends Equatable {
     universityLogoUrl,
     socialMediaLink,
     emailIdVerified,
-    adharVerified,
+    aadharVerified,
     phoneVerified,
     phone,
     email,
@@ -53,39 +54,22 @@ class UniversityProfileResponse extends Equatable {
 
   factory UniversityProfileResponse.fromJson(Map<String, dynamic> json) {
     return UniversityProfileResponse(
-      collegeName: json['college_name'] as String,
-      address: json['address'] as String,
-      pincode: json['pincode'] as String,
-      websiteLink: json['website_link'] as String,
-      about: json['about'] as String,
-      profilePic: json['profile_pic'] as String,
-      universityLogoUrl: json['university_logo_url'] as String,
-      socialMediaLink: json['social_media_link'] as String,
-      emailIdVerified: json['email_id_verified'] as bool,
-      adharVerified: json['aadhar_verified'] as bool,
-      phoneVerified: json['phone_verified'] as bool,
-      phone: json['phone'] as String,
-      email: json['email'] as String,
-      courseIds: List<int>.from(json['course_id'] as List),
+      collegeName: json['college_name'] as String?,
+      address: json['address'] as String?,
+      pincode: json['pincode'] as String?,
+      websiteLink: json['website_link'] as String?,
+      about: json['about'] as String?,
+      profilePic: json['profile_pic'] as String?,
+      universityLogoUrl: json['university_logo_url'] as String?,
+      socialMediaLink: json['social_media_link'] as String?,
+      emailIdVerified: json['email_id_verified'] as bool?,
+      aadharVerified: json['aadhar_verified'] as bool?, // Correct key
+      phoneVerified: json['phone_verified'] as bool?,
+      phone: json['phone'] as String?,
+      email: json['email'] as String?,
+      courseIds: json['course_ids'] != null
+          ? List<int>.from(json['course_ids'] as List)
+          : null, // Plural key
     );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'college_name': collegeName,
-      'address': address,
-      'pincode': pincode,
-      'website_link': websiteLink,
-      'about': about,
-      'profile_pic': profilePic,
-      'university_logo_url': universityLogoUrl,
-      'social_media_link': socialMediaLink,
-      'email_id_verified': emailIdVerified,
-      'aadhar_verified': adharVerified,
-      'phone_verified': phoneVerified,
-      'phone': phone,
-      'email': email,
-      'course_id': courseIds,
-    };
   }
 }

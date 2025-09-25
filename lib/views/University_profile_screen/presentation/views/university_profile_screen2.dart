@@ -1,7 +1,7 @@
 import 'dart:developer' as developer;
 import 'dart:io';
 
-import 'package:dio/dio.dart'; // Import Dio for FormData
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
@@ -19,7 +19,6 @@ import '../bloc/university_profile_bloc.dart';
 import '../bloc/university_profile_event.dart';
 import '../bloc/university_profile_state.dart';
 
-// Import for UploadFileBloc and its events/states
 import '../../../../utils/upload_file_get_url/presentation/bloc/upload_file_bloc.dart';
 import '../../../../utils/upload_file_get_url/presentation/bloc/upload_file_event.dart';
 import '../../../../utils/upload_file_get_url/presentation/bloc/upload_file_state.dart';
@@ -35,41 +34,48 @@ class _UniversityProfilescreen2State extends State<UniversityProfilescreen2> {
   String _aboutText = "82 years of Tradition of excellence in Engineering.";
   String _contactInfo = "+91 XXXXXXXXXX - dtu@gmail.com";
   String _socialMedia = "www.instagram.com";
-  String _universityName = "University Name";
+  String _universityName = "Delhi Technical University";
   String _websiteLink = "www.dtu.ac.in";
   String _address = "Shahbad Daulatpur, Main Bawana Road";
   String _pincode = "110042";
+  String _logoUrlText = ""; // Editable logo URL
   CourseEntity? _selectedCourse;
   File? _profileImage;
-  String? _profilePicUrl; // <-- backend/full URL from API
-  File? _logoImage; // <-- local file for university logo
-  String? _logoUrl; // <-- backend/full URL from API for university logo
+  String? _profilePicUrl;
+  File? _logoImage;
+  String? _logoImageUrl;
+  String? _currentUploadType; // Track which upload we're doing
 
   final prefs = sl<PreferencesManager>();
 
   @override
   void initState() {
     super.initState();
+    developer.log("UniversityProfilescreen2 initState called");
+    developer.log('JWT Token: ${prefs.getToken()}');
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      developer.log("PostFrameCallback: Loading MasterData, ProfileData, LogoImage");
       context.read<MasterDataBloc>().add(LoadMasterData());
-      _loadProfileImage();
       _loadProfileData();
+      _loadProfileImage();
       _loadLogoImage();
     });
   }
 
   Future<void> _loadProfileData() async {
+    developer.log("_loadProfileData called");
     final prefs = sl<PreferencesManager>();
-
     setState(() {
-      _universityName = prefs.getString('university_name') ?? "University Name";
-
+      _universityName =
+          prefs.getString('university_name') ?? "Delhi Technical University";
       _aboutText = prefs.getString('university_about') ?? _aboutText;
       _contactInfo = prefs.getString('university_contact') ?? _contactInfo;
-      _socialMedia = prefs.getString('university_social_media') ?? _socialMedia; // Changed key
+      _socialMedia =
+          prefs.getString('university_social_media') ?? _socialMedia;
       _websiteLink = prefs.getString('university_website') ?? _websiteLink;
       _address = prefs.getString('university_address') ?? _address;
       _pincode = prefs.getString('university_pincode') ?? _pincode;
+      _logoUrlText = prefs.getString('university_logo_url_text') ?? "";
 
       final courseIdStr = prefs.getString('university_selected_course_id');
       final courseName = prefs.getString('university_selected_course_name');
@@ -77,122 +83,86 @@ class _UniversityProfilescreen2State extends State<UniversityProfilescreen2> {
         final courseId = int.tryParse(courseIdStr);
         if (courseId != null) {
           _selectedCourse = CourseEntity(id: courseId, name: courseName);
+          developer.log("Loaded course: ${_selectedCourse!.name}");
         }
       }
     });
   }
+
   Future<void> _loadProfileImage() async {
     final prefs = sl<PreferencesManager>();
-
     final relativePath = prefs.getString('university_profile_pic_url');
     if (relativePath != null && relativePath.isNotEmpty) {
       setState(() {
-        _profilePicUrl = Urls.getFullImageUrl(relativePath); // Convert to full URL for display
+        _profilePicUrl = Urls.getFullImageUrl(relativePath);
         _profileImage = null;
       });
-      developer.log('Loaded profile image from API. Relative: $relativePath, Full: $_profilePicUrl');
       return;
     }
-
-    // Fallback to local file path
     final savedImagePath = prefs.getString('university_profile_pic');
     if (savedImagePath != null && File(savedImagePath).existsSync()) {
       setState(() {
         _profileImage = File(savedImagePath);
         _profilePicUrl = null;
       });
-      developer.log('Loaded profile image from local file: $savedImagePath');
-    } else {
-      developer.log('No profile image found in preferences');
     }
   }
 
-  // Future<void> _loadProfileImage() async {
-  //   final prefs = sl<PreferencesManager>();
-  //   final savedImagePath = prefs.getString('university_profile_pic'); // This is for local file path
-  //
-  //   if (savedImagePath != null && File(savedImagePath).existsSync()) {
-  //     setState(() {
-  //       _profileImage = File(savedImagePath); // local file
-  //     });
-  //   } else {
-  //     // If no local file, try to load from backend URL
-  //     final backendUrl = prefs.getString('university_profile_pic_url'); // This is the URL from the backend
-  //     if (backendUrl != null && backendUrl.isNotEmpty) {
-  //       setState(() {
-  //         _profilePicUrl = Urls.getFullImageUrl(backendUrl); // Use full URL for NetworkImage
-  //       });
-  //     }
-  //   }
-  // }
-  // New: Load university logo image (similar to profile pic)
   Future<void> _loadLogoImage() async {
+    developer.log("_loadLogoImage called");
     final prefs = sl<PreferencesManager>();
-    final savedLogoPath = prefs.getString('university_logo_pic'); // Local file path for logo
-
+    final relativePath = prefs.getString('university_logo_pic_url');
+    if (relativePath != null && relativePath.isNotEmpty) {
+      setState(() {
+        _logoImageUrl = Urls.getFullImageUrl(relativePath);
+        _logoImage = null;
+      });
+      developer.log("Loaded logoImageUrl from server: $_logoImageUrl");
+      return;
+    }
+    final savedLogoPath = prefs.getString('university_logo_pic');
     if (savedLogoPath != null && File(savedLogoPath).existsSync()) {
       setState(() {
-        _logoImage = File(savedLogoPath); // local file
+        _logoImage = File(savedLogoPath);
+        _logoImageUrl = null;
       });
-    } else {
-      // If no local file, try to load from backend URL
-      final backendLogoUrl = prefs.getString('university_logo_pic_url'); // Backend URL for logo
-      if (backendLogoUrl != null && backendLogoUrl.isNotEmpty) {
-        setState(() {
-          _logoUrl = Urls.getFullImageUrl(backendLogoUrl); // Use full URL for NetworkImage
-        });
-      }
+      developer.log("Loaded logoImage from local file: $savedLogoPath");
     }
   }
 
   Future<void> _saveAllProfileData() async {
+    developer.log("_saveAllProfileData called");
     final prefs = sl<PreferencesManager>();
-
     if (_selectedCourse != null) {
-      await prefs.setString('university_selected_course_id', _selectedCourse!.id.toString());
-      await prefs.setString('university_selected_course_name', _selectedCourse!.name);
+      await prefs.setString('university_selected_course_id',
+          _selectedCourse!.id.toString());
+      await prefs.setString(
+          'university_selected_course_name', _selectedCourse!.name);
+      developer.log("Saved selectedCourse: ${_selectedCourse!.name}");
     }
-
-    // Save profile image path if exists (local path)
     if (_profileImage != null) {
       await prefs.setString('university_profile_pic', _profileImage!.path);
+      developer.log("Saved profileImage: ${_profileImage!.path}");
     }
-    // The _profilePicUrl (from backend) is saved when the upload API returns it.
-    // New: Save university logo local path if exists
     if (_logoImage != null) {
       await prefs.setString('university_logo_pic', _logoImage!.path);
+      developer.log("Saved logoImage: ${_logoImage!.path}");
     }
-// The _logoUrl (from backend) is saved when the upload API returns it.
-
-    // Save other profile fields
     await prefs.setString('university_about', _aboutText);
     await prefs.setString('university_contact', _contactInfo);
-    await prefs.setString('university_social_media', _socialMedia); // Corrected key
+    await prefs.setString('university_social_media', _socialMedia);
     await prefs.setString('university_website', _websiteLink);
     await prefs.setString('university_address', _address);
     await prefs.setString('university_pincode', _pincode);
-  }
-  // New: Helper to clear all university profile data from shared preferences (call this on logout)
-  Future<void> _clearUniversityProfileData() async {
-    final prefs = sl<PreferencesManager>();
-    await prefs.clear('university_profile_pic');
-    await prefs.clear('university_profile_pic_url');
-    await prefs.clear('university_logo_pic');
-    await prefs.clear('university_logo_pic_url');
-    await prefs.clear('university_name');
-    await prefs.clear('university_about');
-    await prefs.clear('university_contact');
-    await prefs.clear('university_social_media');
-    await prefs.clear('university_website');
-    await prefs.clear('university_address');
-    await prefs.clear('university_pincode');
-    // Add more keys if needed (e.g., course selection)
-    // Example usage in logout (in another file/bloc):
-    // final prefs = sl<PreferencesManager>(); await prefs.remove('university_profile_pic'); // etc., or make this public/static
+    await prefs.setString('university_logo_url_text', _logoUrlText);
+    developer.log("All profile data saved to prefs");
   }
 
   @override
   Widget build(BuildContext context) {
+    final prefs = sl<PreferencesManager>();
+    final userName = prefs.getString(PreferencesManager.USER_NAME) ?? 'Recruiter Name';
+    final userEmail = prefs.getString(PreferencesManager.USER_EMAIL) ?? 'recruiter@email.com';
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -200,14 +170,8 @@ class _UniversityProfilescreen2State extends State<UniversityProfilescreen2> {
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
-          IconButton(
-            icon: Icon(Icons.message),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: Icon(Icons.notifications),
-            onPressed: () {},
-          ),
+          IconButton(icon: Icon(Icons.message), onPressed: () {}),
+          IconButton(icon: Icon(Icons.notifications), onPressed: () {}),
         ],
       ),
       body: BlocConsumer<MasterDataBloc, MasterDataState>(
@@ -218,7 +182,6 @@ class _UniversityProfilescreen2State extends State<UniversityProfilescreen2> {
               BlocProvider<UniversityProfileBloc>(
                 create: (context) => sl<UniversityProfileBloc>(),
               ),
-              // Provide the UploadFileBloc
               BlocProvider<UploadFileBloc>(
                 create: (context) => sl<UploadFileBloc>(),
               ),
@@ -239,36 +202,32 @@ class _UniversityProfilescreen2State extends State<UniversityProfilescreen2> {
                 return BlocConsumer<UploadFileBloc, UploadFileState>(
                   listener: (context, uploadState) async {
                     if (uploadState is UploadFileLoaded) {
-                      // Image uploaded successfully, save the URL
                       final uploadedUrls = uploadState.uploadFileEntity.url;
                       if (uploadedUrls.isNotEmpty) {
                         final relativePath = uploadedUrls.first;
 
-                        setState(() {
-                          _profilePicUrl = Urls.getFullImageUrl(relativePath); // Convert to full URL for display
-                        });
+                        if (_currentUploadType == 'profile_pic') {
+                          setState(() {
+                            _profilePicUrl = Urls.getFullImageUrl(relativePath);
+                          });
+                          await prefs.setString('university_profile_pic_url', relativePath);
+                        } else if (_currentUploadType == 'university_logo') {
+                          setState(() {
+                            _logoImageUrl = Urls.getFullImageUrl(relativePath);
+                          });
+                          await prefs.setString('university_logo_pic_url', relativePath);
+                        }
 
-                        // Save the RELATIVE PATH to shared preferences (not the full URL)
-                        await prefs.setString('university_profile_pic_url', relativePath);
-
-                        developer.log('Profile picture uploaded. Relative path: $relativePath, Full URL: $_profilePicUrl');
-
-                        // final newProfilePicUrl = uploadedUrls.first; // Assuming single image upload
-                        // setState(() {
-                        //   _profilePicUrl = Urls.getFullImageUrl(newProfilePicUrl); // Update UI with new URL
-                        // });
-                        // // Save the backend URL to shared preferences
-                        // await prefs.setString('university_profile_pic_url', newProfilePicUrl);
-
+                        _currentUploadType = null;
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Profile picture uploaded successfully!')),
+                          SnackBar(content: Text('Image uploaded successfully!')),
                         );
-                        // Trigger a profile save to update the backend with the new URL
                         _instantSave();
                       }
                     } else if (uploadState is UploadFileError) {
+                      _currentUploadType = null;
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Failed to upload profile picture.')),
+                        SnackBar(content: Text('Failed to upload image.')),
                       );
                     }
                   },
@@ -276,7 +235,6 @@ class _UniversityProfilescreen2State extends State<UniversityProfilescreen2> {
                     return SingleChildScrollView(
                       child: Column(
                         children: [
-                          // University Logo/Image
                           Center(
                             child: Stack(
                               children: [
@@ -286,35 +244,14 @@ class _UniversityProfilescreen2State extends State<UniversityProfilescreen2> {
                                   decoration: BoxDecoration(
                                     color: Colors.grey[300],
                                     borderRadius: BorderRadius.circular(75),
-                                    // image: _profileImage != null
-                                    //     ? DecorationImage(
-                                    //   image: FileImage(_profileImage!), // local file
-                                    //   fit: BoxFit.cover,
-                                    // )
-                                    //     : (_profilePicUrl != null && _profilePicUrl!.isNotEmpty
-                                    //     ? DecorationImage(
-                                    //   image: NetworkImage(_profilePicUrl!), // backend URL
-                                    //   fit: BoxFit.cover,
-                                    // )
-                                    //     : null),
                                     image: _profilePicUrl != null && _profilePicUrl!.isNotEmpty
-                                        ? DecorationImage(
-                                      image: NetworkImage(_profilePicUrl!), // Full URL from API
-                                      fit: BoxFit.cover,
-                                    )
+                                        ? DecorationImage(image: NetworkImage(_profilePicUrl!), fit: BoxFit.cover)
                                         : (_profileImage != null
-                                        ? DecorationImage(
-                                      image: FileImage(_profileImage!), // Local file
-                                      fit: BoxFit.cover,
-                                    )
+                                        ? DecorationImage(image: FileImage(_profileImage!), fit: BoxFit.cover)
                                         : null),
                                   ),
                                   child: (_profileImage == null && (_profilePicUrl == null || _profilePicUrl!.isEmpty))
-                                      ? Icon(
-                                    Icons.school,
-                                    size: 50,
-                                    color: Colors.grey[600],
-                                  )
+                                      ? Icon(Icons.school, size: 50, color: Colors.grey[600])
                                       : null,
                                 ),
                                 Positioned(
@@ -326,18 +263,14 @@ class _UniversityProfilescreen2State extends State<UniversityProfilescreen2> {
                                       final pickedFile = await picker.pickImage(source: ImageSource.gallery);
                                       if (pickedFile != null) {
                                         setState(() {
-                                          _profileImage = File(pickedFile.path); // Update local file for instant display
-                                          _profilePicUrl = null; // Clear backend URL to show local file first
+                                          _profileImage = File(pickedFile.path);
+                                          _profilePicUrl = null;
                                         });
-
-                                        // Upload the image to the API
                                         final formData = FormData.fromMap({
-                                          'image': await MultipartFile.fromFile(
-                                            pickedFile.path,
-                                            filename: pickedFile.name,
-                                          ),
+                                          'image': await MultipartFile.fromFile(pickedFile.path, filename: pickedFile.name),
                                         });
-                                        context.read<UploadFileBloc>().add(LoadUploadFile(formData, uploadType: 'university_profile_pic'));
+                                        _currentUploadType = 'profile_pic';
+                                        context.read<UploadFileBloc>().add(LoadUploadFile(formData));
                                       }
                                     },
                                     child: Container(
@@ -345,16 +278,10 @@ class _UniversityProfilescreen2State extends State<UniversityProfilescreen2> {
                                       decoration: BoxDecoration(
                                         color: Colors.white,
                                         borderRadius: BorderRadius.circular(12),
-                                        boxShadow: [
-                                          BoxShadow(color: Colors.black12, blurRadius: 2, offset: Offset(0, 1))
-                                        ],
+                                        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 2, offset: Offset(0, 1))],
                                       ),
-                                      child: (uploadState is UploadFileLoading )
-                                          ? SizedBox(
-                                        height: 14,
-                                        width: 14,
-                                        child: CircularProgressIndicator(strokeWidth: 2),
-                                      )
+                                      child: (uploadState is UploadFileLoading)
+                                          ? SizedBox(height: 14, width: 14, child: CircularProgressIndicator(strokeWidth: 2))
                                           : Icon(Icons.edit, size: 14, color: Colors.blue),
                                     ),
                                   ),
@@ -363,22 +290,18 @@ class _UniversityProfilescreen2State extends State<UniversityProfilescreen2> {
                             ),
                           ),
 
-                          // University Name
                           SizedBox(height: 16),
                           Text(
-                            prefs.getString('university_name') ?? "Delhi Technological University",
+                            _universityName ?? "Delhi Technological University",
                             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
                           ),
-
-                          // University Handle
                           Text(
-                            "@${prefs.getString('university_name')?.toLowerCase().replaceAll(' ', '') ?? "dtudelhi"}",
+                            prefs.getString(PreferencesManager.USER_EMAIL) ?? '@email.com',
                             style: TextStyle(fontSize: 13, fontWeight: FontWeight.w400),
                           ),
 
                           SizedBox(height: 52),
 
-                          // Profile Sections
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 24.0),
                             child: Column(
@@ -388,108 +311,102 @@ class _UniversityProfilescreen2State extends State<UniversityProfilescreen2> {
                                   title: "About",
                                   content: _aboutText,
                                   editText: "View/Edit About",
-                                  onEdit: () => _showEditDialog(
-                                    "Edit About",
-                                    _aboutText,
-                                        (value) {
-                                      setState(() => _aboutText = value);
-                                      _instantSave();
-                                    },
-                                  ),
+                                  onEdit: () => _showEditDialog("Edit About", _aboutText, (value) {
+                                    setState(() => _aboutText = value);
+                                    _instantSave();
+                                  }),
                                 ),
-
                                 SizedBox(height: 18),
 
                                 _buildProfileSection(
                                   title: "Contact Information",
                                   content: _contactInfo,
                                   editText: "Edit Info",
-                                  onEdit: () => _showEditDialog(
-                                    "Edit Contact Information",
-                                    _contactInfo,
-                                        (value) {
-                                      setState(() => _contactInfo = value);
-                                      _instantSave();
-                                    },
-                                  ),
+                                  onEdit: () => _showEditDialog("Edit Contact Information", _contactInfo, (value) {
+                                    setState(() => _contactInfo = value);
+                                    _instantSave();
+                                  }),
                                 ),
-
                                 SizedBox(height: 18),
 
                                 _buildProfileSection(
                                   title: "Website",
                                   content: _websiteLink,
                                   editText: "Edit Website",
-                                  onEdit: () => _showEditDialog(
-                                    "Edit Website",
-                                    _websiteLink,
-                                        (value) {
-                                      setState(() => _websiteLink = value);
-                                      _instantSave();
-                                    },
-                                  ),
+                                  onEdit: () => _showEditDialog("Edit Website", _websiteLink, (value) {
+                                    setState(() => _websiteLink = value);
+                                    _instantSave();
+                                  }),
                                 ),
-
                                 SizedBox(height: 18),
 
                                 _buildProfileSection(
                                   title: "Address",
                                   content: _address,
                                   editText: "Edit Address",
-                                  onEdit: () => _showEditDialog(
-                                    "Edit Address",
-                                    _address,
-                                        (value) {
-                                      setState(() => _address = value);
-                                      _instantSave();
-                                    },
-                                  ),
+                                  onEdit: () => _showEditDialog("Edit Address", _address, (value) {
+                                    setState(() => _address = value);
+                                    _instantSave();
+                                  }),
                                 ),
-
                                 SizedBox(height: 18),
 
                                 _buildProfileSection(
                                   title: "Pincode",
                                   content: _pincode,
                                   editText: "Edit Pincode",
-                                  onEdit: () => _showEditDialog(
-                                    "Edit Pincode",
-                                    _pincode,
-                                        (value) {
-                                      setState(() => _pincode = value);
-                                      _instantSave();
-                                    },
-                                  ),
+                                  onEdit: () => _showEditDialog("Edit Pincode", _pincode, (value) {
+                                    setState(() => _pincode = value);
+                                    _instantSave();
+                                  }),
                                 ),
-
                                 SizedBox(height: 18),
 
-                                // Courses Offered Section
+                                Text("University Logo", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900),),
+                                SizedBox(height: 9),
+
+                                // Optional: Add "Upload Logo" button below the URL field
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 8.0),
+                                  child: InkWell(
+                                    onTap: () async {
+                                      final picker = ImagePicker();
+                                      final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+                                      if (pickedFile != null) {
+                                        setState(() {
+                                          _logoImage = File(pickedFile.path);
+                                          _logoImageUrl = null;
+                                        });
+                                        final formData = FormData.fromMap({
+                                          'image': await MultipartFile.fromFile(pickedFile.path, filename: pickedFile.name),
+                                        });
+                                        _currentUploadType = 'university_logo';
+                                        context.read<UploadFileBloc>().add(LoadUploadFile(formData));
+                                      }
+                                    },
+                                    child: Text(
+                                      "Upload Logo",
+                                      style: TextStyle(fontSize: 14, color: Colors.blue, fontWeight: FontWeight.w400),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(height: 18),
+
+                                // Courses
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
                                       "Courses",
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w700,
-                                        color: Colors.black,
-                                      ),
+                                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.black),
                                     ),
                                     SizedBox(height: 5),
                                     GestureDetector(
-                                      onTap: () {
-                                        FocusScope.of(context).unfocus();
-                                      },
+                                      onTap: () => FocusScope.of(context).unfocus(),
                                       child: Container(
                                         padding: EdgeInsets.symmetric(vertical: 8),
                                         decoration: BoxDecoration(
-                                          border: Border(
-                                            bottom: BorderSide(
-                                              color: Colors.grey.shade300,
-                                              width: 1,
-                                            ),
-                                          ),
+                                          border: Border(bottom: BorderSide(color: Colors.grey.shade300, width: 1)),
                                         ),
                                         child: Row(
                                           children: [
@@ -526,27 +443,20 @@ class _UniversityProfilescreen2State extends State<UniversityProfilescreen2> {
                                       ),
                                   ],
                                 ),
-
                                 SizedBox(height: 18),
 
                                 _buildProfileSection(
                                   title: "Social Media",
                                   content: _socialMedia,
                                   editText: "View/Edit",
-                                  onEdit: () => _showEditDialog(
-                                    "Edit Social Media",
-                                    _socialMedia,
-                                        (value) {
-                                      setState(() => _socialMedia = value);
-                                      _instantSave();
-                                    },
-                                  ),
+                                  onEdit: () => _showEditDialog("Edit Social Media", _socialMedia, (value) {
+                                    setState(() => _socialMedia = value);
+                                    _instantSave();
+                                  }),
                                 ),
-
                                 SizedBox(height: 18),
 
                                 _buildAuthenticationSection(),
-
                                 SizedBox(height: 30),
                               ],
                             ),
@@ -573,38 +483,16 @@ class _UniversityProfilescreen2State extends State<UniversityProfilescreen2> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
-            color: Colors.black,
-          ),
-        ),
+        Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.black)),
         SizedBox(height: 5),
         Text(
           content,
-          style: TextStyle(
-            fontSize: 14,
-            color: Color(0xff9095A0),
-            fontWeight: FontWeight.w400,
-          ),
+          style: TextStyle(fontSize: 14, color: Color(0xff9095A0), fontWeight: FontWeight.w400),
         ),
         SizedBox(height: 3),
-        Row(
-          children: [
-            InkWell(
-              onTap: onEdit,
-              child: Text(
-                editText,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.blue,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-            ),
-          ],
+        InkWell(
+          onTap: onEdit,
+          child: Text(editText, style: TextStyle(fontSize: 14, color: Colors.blue, fontWeight: FontWeight.w400)),
         ),
       ],
     );
@@ -614,14 +502,7 @@ class _UniversityProfilescreen2State extends State<UniversityProfilescreen2> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          "Authentication",
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
-            color: Colors.black,
-          ),
-        ),
+        Text("Authentication", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.black)),
         SizedBox(height: 5),
         Wrap(
           spacing: 11,
@@ -633,22 +514,9 @@ class _UniversityProfilescreen2State extends State<UniversityProfilescreen2> {
           ],
         ),
         SizedBox(height: 6),
-        Row(
-          children: [
-            InkWell(
-              onTap: () {
-                // TODO: Navigate to verification screen
-              },
-              child: Text(
-                "Get Verified",
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.blue,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
+        InkWell(
+          onTap: () {},
+          child: Text("Get Verified", style: TextStyle(fontSize: 14, color: Colors.blue, fontWeight: FontWeight.w600)),
         ),
       ],
     );
@@ -658,46 +526,25 @@ class _UniversityProfilescreen2State extends State<UniversityProfilescreen2> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(
-          icon,
-          color: color,
-          size: 8,
-        ),
+        Icon(icon, color: color, size: 8),
         SizedBox(width: 4),
-        Text(
-          text,
-          style: TextStyle(
-            fontSize: 14,
-            color: Color(0xff9095A0),
-            fontWeight: FontWeight.w400,
-          ),
-        ),
+        Text(text, style: TextStyle(fontSize: 14, color: Color(0xff9095A0), fontWeight: FontWeight.w400)),
       ],
     );
   }
 
   void _showEditDialog(String title, String currentValue, Function(String) onSave) {
     final controller = TextEditingController(text: currentValue);
-
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(title),
-        content: TextField(
-          controller: controller,
-          decoration: InputDecoration(
-            border: OutlineInputBorder(),
-          ),
-          maxLines: null,
-        ),
+        content: TextField(controller: controller, decoration: InputDecoration(border: OutlineInputBorder()), maxLines: null),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text("Cancel"),
-          ),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text("Cancel")),
           TextButton(
             onPressed: () {
-              onSave(controller.text); // update local state + save instantly
+              onSave(controller.text);
               Navigator.pop(context);
             },
             child: Text("Save"),
@@ -710,24 +557,18 @@ class _UniversityProfilescreen2State extends State<UniversityProfilescreen2> {
   void _instantSave() {
     try {
       final entity = _buildUniversityProfileEntity();
-      developer.log('Attempting to save: ${entity.toJson()}');
       context.read<UniversityProfileBloc>().add(SaveUniversityProfile(entity));
-      developer.log('Saving university profile: ${entity.toJson()}');
-      developer.log(
-          'API Endpoint: http://bvrcrafts.com:5000/api/universitydetail');
-      _saveAllProfileData(); // Save local preferences
+      _saveAllProfileData();
       _loadProfileImage();
-    }
-    catch (e) {
+      _loadLogoImage();
+    } catch (e) {
       developer.log('Error in _instantSave: $e');
     }
-
   }
 
   UniversityProfileEntity _buildUniversityProfileEntity() {
-    String phone = "+91 XXXXXXXXXX";
+    String phone = _contactInfo;
     String email = "dtu@gmail.com";
-
     if (_contactInfo.contains(" - ")) {
       List<String> parts = _contactInfo.split(" - ");
       if (parts.length >= 2) {
@@ -740,37 +581,39 @@ class _UniversityProfilescreen2State extends State<UniversityProfilescreen2> {
     if (_selectedCourse != null) {
       courseIds = [_selectedCourse!.id];
     } else {
-      courseIds = [1]; // Default course ID if none selected
+      courseIds = [1];
     }
 
-    // Extract relative path from full URL for backend
-    String? profilePicRelativePath;
-    if (_profilePicUrl != null && _profilePicUrl!.isNotEmpty) {
-      // Convert full URL back to relative path for backend
-      profilePicRelativePath = _profilePicUrl!.replaceFirst('http://bvrcrafts.com:5000/api/', '');
+    String? getRelativePath(String? fullUrl) {
+      if (fullUrl == null || fullUrl.isEmpty) return null;
+      // Remove baseUrl: "http://bvrcrafts.com:5000/api/"
+      return fullUrl.replaceFirst(Urls.baseUrl, '');
     }
+
+    String t(String? s) => s?.trim() ?? "";
 
     return UniversityProfileEntity(
-      collegeName: _universityName, // Use the state variable
+      // userId: int.tryParse(prefs.getString('user_id') ?? '0'),
+      collegeName: _universityName,
       address: _address,
       pincode: _pincode,
-      websiteLink: _websiteLink.startsWith("http")
-          ? _websiteLink
-          : "https://${_websiteLink.startsWith('www.') ? _websiteLink : 'www.$_websiteLink'}",
-      socialMediaLink: _socialMedia.startsWith("http")
-          ? _socialMedia
-          : "https://${_socialMedia.startsWith('www.') ? _socialMedia : 'www.$_socialMedia'}",
-      about: _aboutText,
-      // Use the URL from the backend if available, otherwise local path (though backend URL is preferred for persistence)
-      // profilePic: _profilePicUrl ?? _profileImage?.path ?? "",
-      profilePic: profilePicRelativePath ?? _profileImage?.path ?? "",
-      // universityLogoUrl: _profilePicUrl ?? "", // Assuming universityLogoUrl is the same as profilePic for now
-      emailIdVerified: true,
-      adharVerified: false,
-      phoneVerified: true,
-      phone: _contactInfo,
-      email: email,
-      courseIds: courseIds, universityLogoUrl: '',
+      websiteLink: t(_websiteLink).startsWith("http")
+          ? t(_websiteLink)
+          : "https://${t(_websiteLink).startsWith('www.') ? t(_websiteLink) : 'www.${t(_websiteLink)}'}",
+      socialMediaLink: t(_socialMedia).startsWith("http")
+          ? t(_socialMedia)
+          : "https://${t(_socialMedia).startsWith('www.') ? t(_socialMedia) : 'www.${t(_socialMedia)}'}",
+      about: t(_aboutText),
+      // profilePic: _profilePicUrl,
+      // universityLogoUrl: _logoImageUrl,
+      profilePic: getRelativePath(_profilePicUrl) ?? "",
+      universityLogoUrl: getRelativePath(_logoImageUrl) ?? "",
+      // emailIdVerified: true,
+      // aadharVerified: false,
+      // phoneVerified: true,
+      phone: phone,
+      // email: email,
+      courseIds: courseIds,
     );
   }
 }

@@ -34,9 +34,12 @@ import 'package:job_portal/views/company_register/domain/repository/company_regi
 import 'package:job_portal/views/company_register/domain/usecases/company_register_usecase.dart';
 import 'package:job_portal/views/company_register/presentation/bloc/company_register_bloc.dart';
 import 'package:job_portal/views/detailed_signup_student/data/data_source/detailed_api_service.dart';
+import 'package:job_portal/views/detailed_signup_student/data/repository/language_repository_impl.dart';
 import 'package:job_portal/views/detailed_signup_student/data/repository/skill_repository_impl.dart';
+import 'package:job_portal/views/detailed_signup_student/domain/repository/language_repository.dart';
 import 'package:job_portal/views/detailed_signup_student/domain/repository/skill_repository.dart';
 import 'package:job_portal/views/detailed_signup_student/domain/usecases/skill_usecase.dart';
+import 'package:job_portal/views/detailed_signup_student/presentation/bloc/language_bloc/language_bloc.dart';
 import 'package:job_portal/views/detailed_signup_student/presentation/bloc/master_data_bloc/master_data_bloc.dart';
 import 'package:job_portal/views/detailed_signup_student/presentation/bloc/signup_as_anyone_bloc/detailed_signup_bloc.dart';
 import 'package:job_portal/views/detailed_signup_student/presentation/bloc/skill_bloc/skill_bloc.dart';
@@ -335,8 +338,12 @@ Future<void> initializeDependencies() async {
   sl.registerFactory(() => MasterDataBloc(dio: sl<DioClient>().instance));
   sl.registerFactory<UserEducationApprovalBloc>(() => UserEducationApprovalBloc(sl()));
   sl.registerFactory<UniversityRegistrationBloc>(() => UniversityRegistrationBloc(sl()));
-  sl.registerFactory<UniversityProfileBloc>(() => UniversityProfileBloc(sl()));
-  // sl.registerFactory<UniversityPublicProfileBloc>(() => UniversityPublicProfileBloc(sl()));
+  sl.registerFactory<UniversityProfileBloc>(
+        () => UniversityProfileBloc(
+      updateUseCase: sl<UpdateUniversityProfileUseCase>(),
+      getUseCase: sl<GetUniversityProfileUseCase>(),
+    ),
+  );  // sl.registerFactory<UniversityPublicProfileBloc>(() => UniversityPublicProfileBloc(sl()));
   sl.registerFactory<UniversityPublicProfileBloc>(
         () => UniversityPublicProfileBloc(sl<UniversityPublicProfileUseCase>()),
   );
@@ -345,6 +352,7 @@ Future<void> initializeDependencies() async {
         sl<GetFollowersUseCase>(),
         sl<GetFollowingUseCase>(),
       ),);
+  sl.registerFactory<LanguageBloc>(() => LanguageBloc(sl()));
 
 
 
@@ -459,6 +467,12 @@ Future<void> initializeDependencies() async {
         () => GetFollowingUseCase(sl()),
   );
 
+  sl.registerLazySingleton<GetUniversityProfileUseCase>(
+          () => GetUniversityProfileUseCase(sl<UniversityProfileRepository>()));
+
+  // sl.registerLazySingleton<UpdateUniversityProfileUseCase>(
+  //         () => UpdateUniversityProfileUseCase(sl<UniversityProfileRepository>()));
+
 
 
   // Repository
@@ -527,13 +541,17 @@ Future<void> initializeDependencies() async {
       UniversityRegistrationRepositoryImpl(sl())
   );
   sl.registerSingleton<UniversityProfileRepository>(
-      UniversityProfileRepositoryImpl(sl())
+      UniversityProfileRepositoryImpl( sl<UniversityProfileApiService>(),
+        sl<PreferencesManager>())
   );
   sl.registerSingleton<UniversityPublicProfileRepository>(
       UniversityPublicProfileRepositoryImpl(sl())
   );
   sl.registerLazySingleton<UniversityFollowersFollowingRepository>(
         () => UniversityFollowersFollowingRepositoryImpl(sl()),
+  );
+  sl.registerLazySingleton<MasterDataRepository>(
+        () => MasterDataRepositoryImpl(sl()),
   );
 
 }

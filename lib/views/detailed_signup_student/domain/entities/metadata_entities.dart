@@ -1,4 +1,6 @@
 // location_entity.dart
+import 'package:equatable/equatable.dart';
+
 class LocationEntity {
   final int id;
   final String name;
@@ -138,4 +140,14 @@ class SCourseEntity {
   factory SCourseEntity.fromEntity(SCourseEntity other) {
     return SCourseEntity(name: other.name);
   }
+}
+
+class LanguageEntity extends Equatable {
+  final int id;
+  final String name;
+
+  const LanguageEntity({required this.id, required this.name});
+
+  @override
+  List<Object?> get props => [id, name];
 }

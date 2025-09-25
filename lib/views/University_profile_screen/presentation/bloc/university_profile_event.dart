@@ -1,3 +1,4 @@
+// university_profile_event.dart
 import 'package:equatable/equatable.dart';
 import '../../domain/entities/university_profile_entity.dart';
 

@@ -625,49 +625,69 @@ class _FeedCardState extends State<FeedCard> {
                   shape: BoxShape.circle,
                   color: Colors.grey[200],
                 ),
-                child: (widget.imageUrl.isNotEmpty && widget.imageUrl != ImageString.dummyImageUrl)
-                    ? ClipOval(
-                  child: Image.network(
-                    Urls.getFullImageUrl(widget.imageUrl),
-                    width: 40,
-                    height: 40,
+                child: ClipOval(
+                  child: (widget.imageUrl != null && widget.imageUrl!.isNotEmpty && widget.imageUrl != ImageString.dummyImageUrl)
+                      ? Image.asset(
+                    widget.imageUrl!, // Treat as local asset path
                     fit: BoxFit.cover,
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return Center(
-                        child: CircularProgressIndicator(
-                          value: loadingProgress.expectedTotalBytes != null
-                              ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
-                              : null,
-                        ),
-                      );
-                    },
                     errorBuilder: (context, error, stackTrace) {
+                      developer.log("❌ Error loading profile pic: ${widget.imageUrl}", error: error);
                       return SvgPicture.asset(
                         ImageString.profileIcon,
                         width: 40,
                         height: 40,
                       );
                     },
+                  )
+                      : SvgPicture.asset(
+                    ImageString.profileIcon,
+                    width: 40,
+                    height: 40,
                   ),
-                )
-                    : SvgPicture.asset(
-                  ImageString.profileIcon,
-                  width: 40,
-                  height: 40,
                 ),
               ),
 
-              // const SizedBox(width: 12),
-              // Expanded(
-              //   child: Column(
-              //     crossAxisAlignment: CrossAxisAlignment.start,
-              //     children: [
-              //       Text(widget.company, style: const TextStyle(color: Colors.grey)),
-              //       Text(widget.noFollowers),
-              //     ],
+
+              // Container(
+              //   width: 40,
+              //   height: 40,
+              //   decoration: BoxDecoration(
+              //     shape: BoxShape.circle,
+              //     color: Colors.grey[200],
+              //   ),
+              //   child: (widget.imageUrl.isNotEmpty && widget.imageUrl != ImageString.dummyImageUrl)
+              //       ? ClipOval(
+              //     child: Image.network(
+              //       Urls.getFullImageUrl(widget.imageUrl),
+              //       width: 40,
+              //       height: 40,
+              //       fit: BoxFit.cover,
+              //       loadingBuilder: (context, child, loadingProgress) {
+              //         if (loadingProgress == null) return child;
+              //         return Center(
+              //           child: CircularProgressIndicator(
+              //             value: loadingProgress.expectedTotalBytes != null
+              //                 ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+              //                 : null,
+              //           ),
+              //         );
+              //       },
+              //       errorBuilder: (context, error, stackTrace) {
+              //         return SvgPicture.asset(
+              //           ImageString.profileIcon,
+              //           width: 40,
+              //           height: 40,
+              //         );
+              //       },
+              //     ),
+              //   )
+              //       : SvgPicture.asset(
+              //     ImageString.profileIcon,
+              //     width: 40,
+              //     height: 40,
               //   ),
               // ),
+
                const Icon(Icons.more_vert),
                SizedBox(width: 12),
               Expanded(

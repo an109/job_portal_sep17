@@ -17,8 +17,6 @@ import 'package:job_portal/views/feed/presentation/bloc/feed_bloc/feed_bloc.dart
 import 'package:job_portal/views/feed/presentation/bloc/feed_bloc/feed_event.dart';
 import 'package:job_portal/widgets/widgets.dart';
 
-import '../../../../utils/constants/urls.dart';
-
 class CreateFeedPostView extends StatefulWidget {
   const CreateFeedPostView({super.key});
 
@@ -123,76 +121,6 @@ class _CreateFeedPostViewState extends State<CreateFeedPostView> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              Row(
-                children: [
-                  // Profile Picture
-                  BlocBuilder<UploadFileBloc, UploadFileState>(
-                    builder: (context, state) {
-                      // Get user profile pic from preferences or API
-                      final _prefs = sl<PreferencesManager>();
-                      final profilePic = _prefs.getProfilePic() ?? ''; // Assuming you have this method
-
-                      return
-                        Container(
-                          width: screenWidth * 0.1,
-                          height: screenWidth * 0.1,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.grey[200],
-                          ),
-                          child: FutureBuilder<String?>(
-                            future: _loadUniversityProfilePic(),
-                            builder: (context, snapshot) {
-                              if (snapshot.connectionState == ConnectionState.waiting) {
-                                return Center(
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                );
-                              }
-
-                              final profilePicUrl = snapshot.data;
-
-                              if (profilePicUrl != null && profilePicUrl.isNotEmpty) {
-                                return ClipOval(
-                                  child: Image.network(
-                                    _getFullImageUrl(profilePicUrl),
-                                    width: screenWidth * 0.1,
-                                    height: screenWidth * 0.1,
-                                    fit: BoxFit.cover,
-                                    loadingBuilder: (context, child, loadingProgress) {
-                                      if (loadingProgress == null) return child;
-                                      return Center(
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                        ),
-                                      );
-                                    },
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return _buildDefaultProfileIcon(screenWidth);
-                                    },
-                                  ),
-                                );
-                              } else {
-                                return _buildDefaultProfileIcon(screenWidth);
-                              }
-                            },
-                          ),
-                        );
-                    },
-                  ),
-                  SizedBox(width: screenWidth * 0.03),
-                  // User Name
-                  Text(
-                    'Your Name', // Replace with actual user name from preferences
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: screenWidth * 0.04,
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: screenHeight * 0.02),
               BlocListener<CreateFeedPostBloc, CreateFeedPostState>(
                 listener: (context, state) {
                   if (state is CreateFeedPostLoaded) {
@@ -213,7 +141,6 @@ class _CreateFeedPostViewState extends State<CreateFeedPostView> {
                     final imageUrl = state.uploadFileEntity;
                     developer.log('Image url : ${imageUrl.url.first}');
                     onUploadPost(imageUrl.url.first);
-                    context.read<FeedBloc>().add(const LoadFeedPosts('1', '10'));
                   } else if (state is UploadFileLoading) {
                     developer.log('Upload File Loading');
                   } else if (state is UploadFileError) {
@@ -291,38 +218,4 @@ class _CreateFeedPostViewState extends State<CreateFeedPostView> {
       ),
     );
   }
-}
-String _getFullImageUrl(String url) {
-  if (url.isEmpty) return '';
-  if (url.startsWith('http')) return url;
-  // Use your actual URL formatter
-  return Urls.getFullImageUrl(url); // Changed this line
-}
-
-Future<String?> _loadUniversityProfilePic() async {
-  final _prefs = sl<PreferencesManager>();
-
-  // First try to get the relative path from university profile
-  final relativePath = _prefs.getString('university_profile_pic_url');
-  if (relativePath != null && relativePath.isNotEmpty) {
-    developer.log('Loaded university profile pic: $relativePath');
-    return relativePath;
-  }
-
-  // Fallback to regular user profile pic
-  final userProfilePic = _prefs.getProfilePic();
-  if (userProfilePic != null && userProfilePic.isNotEmpty) {
-    developer.log('Loaded user profile pic: $userProfilePic');
-    return userProfilePic;
-  }
-
-  developer.log('No profile picture found');
-  return null;
-}
-Widget _buildDefaultProfileIcon(double screenWidth) {
-  return Icon(
-    Icons.school, // Use school icon for university, or Icons.person for user
-    size: screenWidth * 0.05,
-    color: Colors.grey,
-  );
 }
